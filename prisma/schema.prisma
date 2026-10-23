@@ -1,0 +1,249 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  STAFF
+}
+
+enum PaymentStatus {
+  PAID
+  PARTIAL
+  DUE
+}
+
+enum PaymentMethod {
+  CASH
+  BKASH
+  NAGAD
+  BANK
+  DUE
+}
+
+enum ExpenseCategory {
+  RENT
+  UTILITIES
+  PURCHASE
+  TRANSPORT
+  SALARY
+  MISC
+}
+
+enum DueDirection {
+  RECEIVABLE // We are owed (আমরা পাবো)
+  PAYABLE    // We owe (আমরা দেবো)
+}
+
+enum DueStatus {
+  UNPAID
+  PARTIAL
+  CLEARED
+}
+
+enum DuePartyType {
+  CUSTOMER
+  SUPPLIER
+  LANDLORD
+  MECHANIC
+  OTHER
+}
+
+enum CustomerTag {
+  REGULAR
+  VIP
+  NEW
+}
+
+model User {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         Role      @default(ADMIN)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  services     Service[]
+  expenses     Expense[]
+}
+
+model Customer {
+  id           String        @id @default(cuid())
+  name         String
+  phone        String        @unique
+  address      String?
+  tag          CustomerTag   @default(NEW)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  bikes        Bike[]
+  services     Service[]
+  customerDues CustomerDue[]
+}
+
+model Bike {
+  id             String        @id @default(cuid())
+  customerId     String
+  customer       Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  model          String        // e.g., Pulsar 150, FZS V3, Gixxer
+  registrationNo String?       // e.g., Dhaka Metro-Ha-11-2233
+  color          String?
+  createdAt      DateTime      @default(now())
+  services       Service[]
+  customerDues   CustomerDue[]
+}
+
+model Service {
+  id             String          @id @default(cuid())
+  date           DateTime        @default(now())
+  customerId     String?
+  customer       Customer?       @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  bikeId         String?
+  bike           Bike?           @relation(fields: [bikeId], references: [id], onDelete: SetNull)
+  userId         String?
+  user           User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  // Income items
+  serviceCharge  Float           @default(0)
+  sparePartsCost Float           @default(0)
+  engineOilCost  Float           @default(0)
+  extraCharges   Float           @default(0)
+  totalIncome    Float           @default(0)
+  
+  // Payment info
+  paymentStatus  PaymentStatus   @default(PAID)
+  paymentMethod  PaymentMethod   @default(CASH)
+  amountPaid     Float           @default(0)
+  notes          String?
+  
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  
+  customerDues   CustomerDue[]
+  serviceItems   ServiceItem[]
+}
+
+model ServiceItem {
+  id              String         @id @default(cuid())
+  serviceId       String
+  service         Service        @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  inventoryItemId String?
+  inventoryItem   InventoryItem? @relation(fields: [inventoryItemId], references: [id], onDelete: SetNull)
+  description     String
+  quantity        Int            @default(1)
+  unitPrice       Float          @default(0)
+  total           Float          @default(0)
+}
+
+model Expense {
+  id          String          @id @default(cuid())
+  date        DateTime        @default(now())
+  description String          // What was the expense for
+  amount      Float
+  category    ExpenseCategory @default(MISC)
+  userId      String?
+  user        User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+model CustomerDue {
+  id              String               @id @default(cuid())
+  date            DateTime             @default(now())
+  customerId      String?
+  customer        Customer?            @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  serviceId       String?              // Linked to original sale/service
+  service         Service?             @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  bikeId          String?
+  bike            Bike?                @relation(fields: [bikeId], references: [id], onDelete: SetNull)
+  customerName    String?              // Fallback name if no customer ID
+  bikeName        String?              // Fallback bike if no bike ID
+  totalAmount     Float
+  paidAmount      Float                @default(0)
+  remainingAmount Float
+  dueDate         DateTime?
+  status          DueStatus            @default(UNPAID)
+  notes           String?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  installments    InstallmentPayment[]
+}
+
+model InstallmentPayment {
+  id            String        @id @default(cuid())
+  customerDueId String
+  customerDue   CustomerDue   @relation(fields: [customerDueId], references: [id], onDelete: Cascade)
+  amount        Float
+  method        PaymentMethod @default(CASH)
+  date          DateTime      @default(now())
+  note          String?
+  createdAt     DateTime      @default(now())
+}
+
+model DueParty {
+  id         String       @id @default(cuid())
+  name       String
+  phone      String?
+  type       DuePartyType @default(CUSTOMER)
+  address    String?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  dueEntries DueEntry[]
+}
+
+model DueEntry {
+  id              String        @id @default(cuid())
+  partyId         String
+  party           DueParty      @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  direction       DueDirection  // RECEIVABLE (আমরা পাবো) or PAYABLE (আমরা দেবো)
+  reason          String        // Description/reason
+  totalAmount     Float
+  paidAmount      Float         @default(0)
+  remainingAmount Float
+  dueDate         DateTime?
+  status          DueStatus     @default(UNPAID)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  payments        DuePayment[]
+}
+
+model DuePayment {
+  id         String        @id @default(cuid())
+  dueEntryId String
+  dueEntry   DueEntry      @relation(fields: [dueEntryId], references: [id], onDelete: Cascade)
+  amount     Float
+  method     PaymentMethod @default(CASH)
+  date       DateTime      @default(now())
+  note       String?
+  createdAt  DateTime      @default(now())
+}
+
+model InventoryItem {
+  id           String        @id @default(cuid())
+  name         String
+  category     String
+  quantity     Int           @default(0)
+  buyPrice     Float         @default(0)
+  sellPrice    Float         @default(0)
+  reorderLevel Int           @default(5)
+  supplierName String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  serviceItems ServiceItem[]
+}
+
+model WorkshopSettings {
+  id           String   @id @default("default")
+  workshopName String   @default("TrackMoto Bike Workshop")
+  address      String   @default("Mirpur, Dhaka, Bangladesh")
+  phone        String   @default("+880 1700-000000")
+  currency     String   @default("৳")
+  logoUrl      String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}

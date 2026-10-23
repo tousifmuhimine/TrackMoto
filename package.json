@@ -1,0 +1,46 @@
+{
+  "name": "trackmoto",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "prisma:seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^3.10.0",
+    "@neondatabase/serverless": "^0.10.4",
+    "@neon/config": "^1.9.3",
+    "@neon/env": "^1.6.4",
+    "@prisma/adapter-neon": "^6.4.1",
+    "@prisma/client": "^6.4.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "framer-motion": "^12.4.7",
+    "jspdf": "^3.0.0",
+    "lucide-react": "^0.475.0",
+    "next": "^15.1.7",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-hook-form": "^7.54.2",
+    "recharts": "^2.15.1",
+    "sonner": "^2.0.1",
+    "tailwind-merge": "^3.0.1",
+    "xlsx": "^0.18.5",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.5.2",
+    "prisma": "^6.4.1",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.3"
+  }
+}
