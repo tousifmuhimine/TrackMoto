@@ -301,9 +301,11 @@ export default function DailySheetPage() {
         {/* Net Daily Balance Card */}
         <div
           className={`border rounded-2xl p-5 shadow-sm ${
-            netTotal >= 0
-              ? "bg-gradient-to-br from-teal-500/15 via-teal-500/5 to-transparent border-teal-500/30"
-              : "bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-transparent border-amber-500/30"
+            netTotal > 0
+              ? "bg-gradient-to-br from-emerald-500/15 via-emerald-500/5 to-transparent border-emerald-500/30"
+              : netTotal < 0
+              ? "bg-gradient-to-br from-rose-500/15 via-rose-500/5 to-transparent border-rose-500/30"
+              : "bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800"
           }`}
         >
           <div className="flex items-center justify-between">
@@ -312,20 +314,32 @@ export default function DailySheetPage() {
             </span>
             <span
               className={`px-2 py-0.5 text-xs font-bold rounded-md ${
-                netTotal >= 0
-                  ? "bg-teal-500/20 text-teal-700 dark:text-teal-300"
-                  : "bg-rose-500/20 text-rose-700 dark:text-rose-300"
+                netTotal > 0
+                  ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
+                  : netTotal < 0
+                  ? "bg-rose-500/20 text-rose-700 dark:text-rose-300"
+                  : totalIncome > 0 || totalExpense > 0
+                  ? "bg-amber-500/20 text-amber-700 dark:text-amber-300"
+                  : "bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
               }`}
             >
-              {netTotal >= 0 ? "PROFIT" : "LOSS"}
+              {netTotal > 0
+                ? "PROFIT"
+                : netTotal < 0
+                ? "LOSS"
+                : totalIncome > 0 || totalExpense > 0
+                ? "BREAK-EVEN"
+                : "NO ACTIVITY"}
             </span>
           </div>
           <div className="mt-3">
             <span
               className={`text-3xl font-extrabold ${
-                netTotal >= 0
-                  ? "text-teal-600 dark:text-teal-400"
-                  : "text-rose-600 dark:text-rose-400"
+                netTotal > 0
+                  ? "text-emerald-600 dark:text-emerald-400"
+                  : netTotal < 0
+                  ? "text-rose-600 dark:text-rose-400"
+                  : "text-slate-600 dark:text-slate-400"
               }`}
             >
               {formatCurrency(netTotal)}

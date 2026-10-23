@@ -62,6 +62,17 @@ export async function GET(request: Request) {
       const engineOilTotal = monthServices.reduce((sum, s) => sum + s.engineOilCost, 0);
       const extraTotal = monthServices.reduce((sum, s) => sum + s.extraCharges, 0);
 
+      let status = "NO ACTIVITY";
+      if (netTotal > 0) {
+        status = "PROFIT";
+      } else if (netTotal < 0) {
+        status = "LOSS";
+      } else if (totalIncome > 0 || totalExpense > 0) {
+        status = "BREAK-EVEN";
+      } else {
+        status = "NO ACTIVITY";
+      }
+
       return {
         monthIndex: index + 1,
         monthName: name,
@@ -75,7 +86,7 @@ export async function GET(request: Request) {
         totalIncome,
         totalExpense,
         netTotal,
-        status: netTotal >= 0 ? "PROFIT" : "LOSS",
+        status,
       };
     });
 

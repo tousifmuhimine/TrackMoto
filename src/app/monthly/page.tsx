@@ -258,9 +258,11 @@ export default function MonthlySummaryPage() {
                       </td>
                       <td
                         className={`py-3 px-4 text-right font-extrabold ${
-                          m.netTotal >= 0
-                            ? "text-teal-600 dark:text-teal-400"
-                            : "text-rose-600 dark:text-rose-400"
+                          m.netTotal > 0
+                            ? "text-emerald-600 dark:text-emerald-400"
+                            : m.netTotal < 0
+                            ? "text-rose-600 dark:text-rose-400"
+                            : "text-slate-400 dark:text-slate-500"
                         }`}
                       >
                         {formatCurrency(m.netTotal)}
@@ -268,12 +270,16 @@ export default function MonthlySummaryPage() {
                       <td className="py-3 px-4 text-center">
                         <span
                           className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                            m.netTotal >= 0
-                              ? "bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300"
-                              : "bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300"
+                            m.status === "PROFIT"
+                              ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300"
+                              : m.status === "LOSS"
+                              ? "bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300"
+                              : m.status === "BREAK-EVEN"
+                              ? "bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300"
+                              : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
                           }`}
                         >
-                          {m.netTotal >= 0 ? "PROFIT" : "LOSS"}
+                          {m.status}
                         </span>
                       </td>
                     </tr>

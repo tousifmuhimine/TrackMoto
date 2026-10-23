@@ -132,19 +132,31 @@ export default function DashboardPage() {
             </span>
             <span
               className={`px-2 py-0.5 text-[10px] font-bold rounded-md ${
-                (data?.today?.net || 0) >= 0
-                  ? "bg-teal-100 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300"
-                  : "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300"
+                (data?.today?.net || 0) > 0
+                  ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+                  : (data?.today?.net || 0) < 0
+                  ? "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300"
+                  : (data?.today?.income || 0) > 0 || (data?.today?.expense || 0) > 0
+                  ? "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
+                  : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
               }`}
             >
-              {(data?.today?.net || 0) >= 0 ? "PROFIT" : "LOSS"}
+              {(data?.today?.net || 0) > 0
+                ? "PROFIT"
+                : (data?.today?.net || 0) < 0
+                ? "LOSS"
+                : (data?.today?.income || 0) > 0 || (data?.today?.expense || 0) > 0
+                ? "BREAK-EVEN"
+                : "NO ACTIVITY"}
             </span>
           </div>
           <div
             className={`text-2xl font-extrabold mt-2 ${
-              (data?.today?.net || 0) >= 0
-                ? "text-teal-600 dark:text-teal-400"
-                : "text-rose-600 dark:text-rose-400"
+              (data?.today?.net || 0) > 0
+                ? "text-emerald-600 dark:text-emerald-400"
+                : (data?.today?.net || 0) < 0
+                ? "text-rose-600 dark:text-rose-400"
+                : "text-slate-600 dark:text-slate-400"
             }`}
           >
             {formatCurrency(data?.today?.net || 0)}
