@@ -170,7 +170,7 @@ export default function InvoicesPage() {
                 <thead>
                   <tr className="border-b border-slate-300 text-xs font-bold uppercase text-slate-600">
                     <th className="py-2.5">Service / Item Details</th>
-                    <th className="py-2.5 text-right">Amount (৳)</th>
+                    <th className="py-2.5 text-right">Amount (BDT)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">

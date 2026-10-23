@@ -586,7 +586,7 @@ export default function BidirectionalDuesPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    Total Amount (৳)
+                    Total Amount (BDT)
                   </label>
                   <input
                     type="number"
@@ -599,7 +599,7 @@ export default function BidirectionalDuesPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    Paid / Received (৳)
+                    Paid / Received (BDT)
                   </label>
                   <input
                     type="number"
@@ -668,7 +668,7 @@ export default function BidirectionalDuesPage() {
             <form onSubmit={handleRecordPayment} className="mt-4 space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Amount (৳)
+                  Amount (BDT)
                 </label>
                 <input
                   type="number"

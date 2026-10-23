@@ -37,8 +37,8 @@ enum ExpenseCategory {
 }
 
 enum DueDirection {
-  RECEIVABLE // We are owed (আমরা পাবো)
-  PAYABLE    // We owe (আমরা দেবো)
+  RECEIVABLE // We are owed
+  PAYABLE    // We owe
 }
 
 enum DueStatus {
@@ -200,7 +200,7 @@ model DueEntry {
   id              String        @id @default(cuid())
   partyId         String
   party           DueParty      @relation(fields: [partyId], references: [id], onDelete: Cascade)
-  direction       DueDirection  // RECEIVABLE (আমরা পাবো) or PAYABLE (আমরা দেবো)
+  direction       DueDirection  // RECEIVABLE or PAYABLE
   reason          String        // Description/reason
   totalAmount     Float
   paidAmount      Float         @default(0)
@@ -242,7 +242,7 @@ model WorkshopSettings {
   workshopName String   @default("TrackMoto Bike Workshop")
   address      String   @default("Mirpur, Dhaka, Bangladesh")
   phone        String   @default("+880 1700-000000")
-  currency     String   @default("৳")
+  currency     String   @default("BDT")
   logoUrl      String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

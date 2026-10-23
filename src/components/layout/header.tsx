@@ -54,7 +54,7 @@ export function Header() {
 
         {/* Currency badge */}
         <div className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-xs font-bold rounded-md text-slate-700 dark:text-slate-200 border border-slate-250 dark:border-slate-700">
-          Currency: ৳ BDT
+          Currency: BDT
         </div>
       </div>
     </header>

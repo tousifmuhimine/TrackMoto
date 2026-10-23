@@ -679,7 +679,7 @@ export default function DailySheetPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                      Service Charge (৳)
+                      Service Charge (BDT)
                     </label>
                     <input
                       type="number"
@@ -693,7 +693,7 @@ export default function DailySheetPage() {
                   </div>
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                      Spare Parts (৳)
+                      Spare Parts (BDT)
                     </label>
                     <input
                       type="number"
@@ -707,7 +707,7 @@ export default function DailySheetPage() {
                   </div>
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                      Engine Oil (৳)
+                      Engine Oil (BDT)
                     </label>
                     <input
                       type="number"
@@ -721,7 +721,7 @@ export default function DailySheetPage() {
                   </div>
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                      Extra Charge (৳)
+                      Extra Charge (BDT)
                     </label>
                     <input
                       type="number"
@@ -788,7 +788,7 @@ export default function DailySheetPage() {
                 {serviceForm.paymentStatus === "PARTIAL" && (
                   <div>
                     <label className="block text-xs font-semibold text-amber-600 dark:text-amber-400 mb-1">
-                      Upfront Paid Amount (৳)
+                      Upfront Paid Amount (BDT)
                     </label>
                     <input
                       type="number"
@@ -876,7 +876,7 @@ export default function DailySheetPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Amount (৳)
+                  Amount (BDT)
                 </label>
                 <input
                   type="number"

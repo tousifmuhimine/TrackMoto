@@ -42,13 +42,13 @@ export default function MonthlySummaryPage() {
       Month: m.monthName,
       Year: m.year,
       "Total Services": m.serviceCount,
-      "Service Charges (৳)": m.serviceChargeTotal,
-      "Spare Parts (৳)": m.sparePartsTotal,
-      "Engine Oil (৳)": m.engineOilTotal,
-      "Extra Charges (৳)": m.extraTotal,
-      "Total Income (৳)": m.totalIncome,
-      "Total Expense (৳)": m.totalExpense,
-      "Net Profit/Loss (৳)": m.netTotal,
+      "Service Charges (BDT)": m.serviceChargeTotal,
+      "Spare Parts (BDT)": m.sparePartsTotal,
+      "Engine Oil (BDT)": m.engineOilTotal,
+      "Extra Charges (BDT)": m.extraTotal,
+      "Total Income (BDT)": m.totalIncome,
+      "Total Expense (BDT)": m.totalExpense,
+      "Net Profit/Loss (BDT)": m.netTotal,
       Status: m.status,
     }));
 
@@ -187,10 +187,10 @@ export default function MonthlySummaryPage() {
               <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100/70 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 text-xs uppercase font-semibold">
                 <th className="py-3 px-4">Month</th>
                 <th className="py-3 px-4 text-center">Services</th>
-                <th className="py-3 px-4 text-right">Service Fee (৳)</th>
-                <th className="py-3 px-4 text-right">Parts (৳)</th>
-                <th className="py-3 px-4 text-right">Oil (৳)</th>
-                <th className="py-3 px-4 text-right">Extra (৳)</th>
+                <th className="py-3 px-4 text-right">Service Fee (BDT)</th>
+                <th className="py-3 px-4 text-right">Parts (BDT)</th>
+                <th className="py-3 px-4 text-right">Oil (BDT)</th>
+                <th className="py-3 px-4 text-right">Extra (BDT)</th>
                 <th className="py-3 px-4 text-right font-bold text-emerald-600 dark:text-emerald-400">
                   Total Income
                 </th>

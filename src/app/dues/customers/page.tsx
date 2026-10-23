@@ -401,7 +401,7 @@ export default function CustomerDuesPage() {
             <form onSubmit={handleRecordPayment} className="mt-4 space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Payment Amount (৳)
+                  Payment Amount (BDT)
                 </label>
                 <input
                   type="number"

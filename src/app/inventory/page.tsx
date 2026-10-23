@@ -93,8 +93,8 @@ export default function InventoryPage() {
                 <th className="py-3 px-4">Item Name</th>
                 <th className="py-3 px-4">Category</th>
                 <th className="py-3 px-4 text-center">Stock Quantity</th>
-                <th className="py-3 px-4 text-right">Cost Price (৳)</th>
-                <th className="py-3 px-4 text-right">Selling Price (৳)</th>
+                <th className="py-3 px-4 text-right">Cost Price (BDT)</th>
+                <th className="py-3 px-4 text-right">Selling Price (BDT)</th>
                 <th className="py-3 px-4">Supplier</th>
                 <th className="py-3 px-4 text-center">Status</th>
               </tr>
@@ -205,7 +205,7 @@ export default function InventoryPage() {
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-xs font-semibold mb-1">Cost Price (৳)</label>
+                  <label className="block text-xs font-semibold mb-1">Cost Price (BDT)</label>
                   <input
                     type="number"
                     required
@@ -215,7 +215,7 @@ export default function InventoryPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold mb-1">Selling Price (৳)</label>
+                  <label className="block text-xs font-semibold mb-1">Selling Price (BDT)</label>
                   <input
                     type="number"
                     required

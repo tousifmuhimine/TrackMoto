@@ -6,14 +6,10 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("en-BD", {
-    style: "currency",
-    currency: "BDT",
+  return `BDT ${new Intl.NumberFormat("en-US", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  })
-    .format(amount)
-    .replace("BDT", "৳");
+  }).format(amount)}`;
 }
 
 export function formatDate(date: string | Date): string {

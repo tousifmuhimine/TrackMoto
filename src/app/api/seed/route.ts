@@ -112,7 +112,7 @@ export async function POST() {
         remainingAmount: 2850,
         dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
         status: "PARTIAL",
-        notes: "Remaining ৳2,850 to be paid on next visit",
+        notes: "Remaining BDT 2,850 to be paid on next visit",
       },
     });
 
@@ -197,7 +197,7 @@ export async function POST() {
         workshopName: "TrackMoto Bike Workshop",
         address: "Plot 12, Main Road, Dhaka - 1216",
         phone: "+880 1711-223344",
-        currency: "৳",
+        currency: "BDT",
       },
     });
 

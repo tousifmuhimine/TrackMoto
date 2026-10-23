@@ -9,7 +9,7 @@ export default function SettingsPage() {
     workshopName: "TrackMoto Bike Workshop",
     address: "Plot 12, Main Road, Dhaka - 1216",
     phone: "+880 1711-223344",
-    currency: "৳",
+    currency: "BDT",
   });
 
   const handleSave = (e: React.FormEvent) => {

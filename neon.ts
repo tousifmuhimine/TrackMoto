@@ -6,7 +6,7 @@ export default defineConfig({
     realtime: true,
   },
   auth: true,
-  aiGateway: true,
+  // aiGateway: true, // Requires paid Neon plan
   functions: {
     hello: { name: "Hello World", source: "./hello.ts" },
   },
