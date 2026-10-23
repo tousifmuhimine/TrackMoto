@@ -12,6 +12,7 @@ import {
   Phone,
   Bike as BikeIcon,
   Search,
+  Trash2,
 } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { toast } from "sonner";
@@ -91,6 +92,22 @@ export default function CustomerDuesPage() {
       fetchDues();
     } catch (err: any) {
       toast.error(err.message);
+    }
+  };
+
+  const handleDeleteDue = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this customer due record?")) return;
+    try {
+      const res = await fetch(`/api/customer-dues/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        toast.success("Customer due record deleted");
+        fetchDues();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Failed to delete record");
+      }
+    } catch (err: any) {
+      toast.error("Delete failed: " + err.message);
     }
   };
 
@@ -309,8 +326,8 @@ export default function CustomerDuesPage() {
                     </div>
                   </div>
 
-                  {/* Right: Action Button */}
-                  <div>
+                  {/* Right: Action Buttons */}
+                  <div className="flex items-center gap-2">
                     {!isCleared ? (
                       <button
                         onClick={() => {
@@ -334,6 +351,13 @@ export default function CustomerDuesPage() {
                         <span>Cleared</span>
                       </div>
                     )}
+                    <button
+                      onClick={() => handleDeleteDue(due.id)}
+                      className="p-2 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors"
+                      title="Delete due record"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
 

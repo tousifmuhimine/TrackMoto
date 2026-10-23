@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users2, Plus, Phone, Bike, Search } from "lucide-react";
+import { Users2, Plus, Phone, Bike, Search, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -53,6 +53,22 @@ export default function CustomersPage() {
       fetchCustomers();
     } catch (err: any) {
       toast.error(err.message);
+    }
+  };
+
+  const handleDeleteCustomer = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this customer?")) return;
+    try {
+      const res = await fetch(`/api/customers/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        toast.success("Customer deleted");
+        fetchCustomers();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Failed to delete customer");
+      }
+    } catch (err: any) {
+      toast.error("Delete failed: " + err.message);
     }
   };
 
@@ -118,9 +134,18 @@ export default function CustomersPage() {
                     <Phone className="w-3 h-3" /> {c.phone}
                   </span>
                 </div>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                  {c.tag}
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                    {c.tag}
+                  </span>
+                  <button
+                    onClick={() => handleDeleteCustomer(c.id)}
+                    className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors"
+                    title="Delete customer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
 
               {c.bikes && c.bikes.length > 0 && (

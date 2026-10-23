@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Package, Plus, AlertTriangle } from "lucide-react";
+import { Package, Plus, AlertTriangle, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -63,6 +63,22 @@ export default function InventoryPage() {
     }
   };
 
+  const handleDeleteItem = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this inventory item?")) return;
+    try {
+      const res = await fetch(`/api/inventory/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        toast.success("Inventory item deleted");
+        fetchInventory();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Failed to delete item");
+      }
+    } catch (err: any) {
+      toast.error("Delete failed: " + err.message);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
@@ -97,18 +113,19 @@ export default function InventoryPage() {
                 <th className="py-3 px-4 text-right">Selling Price (BDT)</th>
                 <th className="py-3 px-4">Supplier</th>
                 <th className="py-3 px-4 text-center">Status</th>
+                <th className="py-3 px-4 text-center">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
+                  <td colSpan={8} className="py-12 text-center text-slate-400">
                     Loading stock...
                   </td>
                 </tr>
               ) : items.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
+                  <td colSpan={8} className="py-12 text-center text-slate-400">
                     No items in inventory.
                   </td>
                 </tr>
@@ -146,6 +163,15 @@ export default function InventoryPage() {
                           {isLow ? <AlertTriangle className="w-3 h-3" /> : null}
                           {isLow ? "Low Stock" : "In Stock"}
                         </span>
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <button
+                          onClick={() => handleDeleteItem(item.id)}
+                          className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors"
+                          title="Delete inventory item"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </td>
                     </tr>
                   );

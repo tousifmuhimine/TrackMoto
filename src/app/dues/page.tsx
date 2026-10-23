@@ -10,6 +10,7 @@ import {
   Phone,
   Clock,
   History,
+  Trash2,
 } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { toast } from "sonner";
@@ -99,6 +100,22 @@ export default function BidirectionalDuesPage() {
       fetchData();
     } catch (err: any) {
       toast.error(err.message);
+    }
+  };
+
+  const handleDeleteEntry = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this due ledger entry?")) return;
+    try {
+      const res = await fetch(`/api/due-entries/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        toast.success("Due entry deleted");
+        fetchData();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || "Failed to delete entry");
+      }
+    } catch (err: any) {
+      toast.error("Delete failed: " + err.message);
     }
   };
 
@@ -381,8 +398,8 @@ export default function BidirectionalDuesPage() {
                       </div>
                     </div>
 
-                    {/* Right button */}
-                    <div>
+                    {/* Right action buttons */}
+                    <div className="flex items-center gap-2">
                       {!isCleared && (
                         <button
                           onClick={() => {
@@ -405,6 +422,13 @@ export default function BidirectionalDuesPage() {
                           <span>{isPayable ? "Record Payment Made" : "Record Payment Received"}</span>
                         </button>
                       )}
+                      <button
+                        onClick={() => handleDeleteEntry(item.id)}
+                        className="p-2 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors"
+                        title="Delete due entry"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
 
