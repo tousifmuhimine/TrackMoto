@@ -108,7 +108,9 @@ export function Sidebar() {
         {navigation.map((item) => {
           const isActive =
             pathname === item.href ||
-            (item.href !== "/" && pathname.startsWith(item.href));
+            (item.href !== "/" &&
+              item.href !== "/dues" &&
+              pathname.startsWith(`${item.href}/`));
           const Icon = item.icon;
 
           return (
