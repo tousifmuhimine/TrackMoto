@@ -11,7 +11,7 @@ import {
   Receipt,
   ChevronLeft,
   ChevronRight,
-} from "date-fns" ? require("lucide-react") : require("lucide-react");
+} from "lucide-react";
 import { format, addDays, subDays } from "date-fns";
 import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
