@@ -4,15 +4,14 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: trackmoto-app
+    restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
       - "DATABASE_URL=postgresql://trackmoto:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/trackmoto?schema=public"
-      - NODE_ENV=development
-    volumes:
-      - .:/app
-      - /app/node_modules
-      - /app/.next
+      - NODE_ENV=production
+      - "NEXTAUTH_SECRET=${NEXTAUTH_SECRET:?Set NEXTAUTH_SECRET in .env}"
+      - NEXT_PUBLIC_APP_NAME=TrackMoto
     depends_on:
       db:
         condition: service_healthy
@@ -20,6 +19,7 @@ services:
   db:
     image: postgres:16-alpine
     container_name: trackmoto-db
+    restart: unless-stopped
     ports:
       - "5432:5432"
     environment:
@@ -30,8 +30,8 @@ services:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U trackmoto -d trackmoto"]
-      interval: 5s
-      timeout: 5s
+      interval: 3s
+      timeout: 3s
       retries: 5
 
 volumes:
