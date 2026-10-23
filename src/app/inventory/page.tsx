@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Package, Plus, AlertTriangle, Search } from "lucide-react";
+import { Package, Plus, AlertTriangle } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -46,7 +46,7 @@ export default function InventoryPage() {
         body: JSON.stringify(form),
       });
       if (!res.ok) throw new Error("Failed to add inventory item");
-      toast.success("মালামাল সফলভাবে স্টকে যুক্ত হয়েছে");
+      toast.success("Stock item added successfully");
       setIsOpen(false);
       setForm({
         name: "",
@@ -69,10 +69,10 @@ export default function InventoryPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
             <Package className="w-6 h-6 text-emerald-600" />
-            <span>স্পেয়ার পার্টস ও অয়েল ইনভেন্টরি (Stock & Inventory)</span>
+            <span>Spare Parts & Stock Inventory</span>
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            মবিল, চেইন, প্লাগ, ব্রেক শু ইত্যাদি যন্ত্রাংশের মজুদ ও ক্রয়-বিক্রয় মূল্য।
+            Engine oils, chains, brake shoes, filters, cost prices, sell prices, and stock reorder alerts.
           </p>
         </div>
 
@@ -81,7 +81,7 @@ export default function InventoryPage() {
           className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-sm"
         >
           <Plus className="w-4 h-4" />
-          <span>নতুন আইটেম যুক্ত করুন</span>
+          <span>Add Stock Item</span>
         </button>
       </div>
 
@@ -90,26 +90,26 @@ export default function InventoryPage() {
           <table className="w-full text-left border-collapse text-sm">
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100/70 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 text-xs uppercase font-semibold">
-                <th className="py-3 px-4">আইটেমের নাম</th>
-                <th className="py-3 px-4">ক্যাটাগরি</th>
-                <th className="py-3 px-4 text-center">মজুদ (Stock)</th>
-                <th className="py-3 px-4 text-right">ক্রয়মূল্য (৳)</th>
-                <th className="py-3 px-4 text-right">বিক্রয়মূল্য (৳)</th>
-                <th className="py-3 px-4">সাপ্লায়ার</th>
-                <th className="py-3 px-4 text-center">অবস্থা</th>
+                <th className="py-3 px-4">Item Name</th>
+                <th className="py-3 px-4">Category</th>
+                <th className="py-3 px-4 text-center">Stock Quantity</th>
+                <th className="py-3 px-4 text-right">Cost Price (৳)</th>
+                <th className="py-3 px-4 text-right">Selling Price (৳)</th>
+                <th className="py-3 px-4">Supplier</th>
+                <th className="py-3 px-4 text-center">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {loading ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400">
-                    লোড হচ্ছে...
+                    Loading stock...
                   </td>
                 </tr>
               ) : items.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400">
-                    কোনো আইটেম যোগ করা হয়নি।
+                    No items in inventory.
                   </td>
                 </tr>
               ) : (
@@ -124,7 +124,7 @@ export default function InventoryPage() {
                         {item.category}
                       </td>
                       <td className="py-3 px-4 text-center font-bold font-mono">
-                        {item.quantity} পিস
+                        {item.quantity} pcs
                       </td>
                       <td className="py-3 px-4 text-right font-medium">
                         {formatCurrency(item.buyPrice)}
@@ -144,7 +144,7 @@ export default function InventoryPage() {
                           }`}
                         >
                           {isLow ? <AlertTriangle className="w-3 h-3" /> : null}
-                          {isLow ? "স্টক শেষপ্রায়" : "মজুদ আছে"}
+                          {isLow ? "Low Stock" : "In Stock"}
                         </span>
                       </td>
                     </tr>
@@ -161,15 +161,15 @@ export default function InventoryPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white pb-3 border-b border-slate-200 dark:border-slate-800">
-              নতুন মালামাল স্টক যুক্ত করুন
+              Add New Stock Item
             </h3>
             <form onSubmit={handleCreate} className="mt-4 space-y-3">
               <div>
-                <label className="block text-xs font-semibold mb-1">আইটেমের নাম</label>
+                <label className="block text-xs font-semibold mb-1">Item Name</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g., Motul 10W-40 Mobil / Brake Shoe"
+                  placeholder="e.g., Motul 10W-40 Mobil, Chain Sprocket"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
@@ -178,7 +178,7 @@ export default function InventoryPage() {
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-xs font-semibold mb-1">পরিমাণ (Qty)</label>
+                  <label className="block text-xs font-semibold mb-1">Quantity (pcs)</label>
                   <input
                     type="number"
                     required
@@ -188,24 +188,24 @@ export default function InventoryPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold mb-1">ক্যাটাগরি</label>
+                  <label className="block text-xs font-semibold mb-1">Category</label>
                   <select
                     value={form.category}
                     onChange={(e) => setForm({ ...form, category: e.target.value })}
                     className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
                   >
-                    <option value="ENGINE_OIL">ইঞ্জিন অয়েল (Mobil)</option>
-                    <option value="SPARE_PARTS">স্পেয়ার পার্টস</option>
-                    <option value="BRAKE">ব্রেক শু / প্যাড</option>
-                    <option value="CHAIN">চেইন স্প্রোকেট</option>
-                    <option value="MISC">অন্যান্য</option>
+                    <option value="ENGINE_OIL">Engine Oil</option>
+                    <option value="SPARE_PARTS">Spare Parts</option>
+                    <option value="BRAKE">Brake Shoe / Pads</option>
+                    <option value="CHAIN">Chain & Sprocket</option>
+                    <option value="MISC">Miscellaneous</option>
                   </select>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-xs font-semibold mb-1">ক্রয়মূল্য (৳)</label>
+                  <label className="block text-xs font-semibold mb-1">Cost Price (৳)</label>
                   <input
                     type="number"
                     required
@@ -215,7 +215,7 @@ export default function InventoryPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold mb-1">বিক্রয়মূল্য (৳)</label>
+                  <label className="block text-xs font-semibold mb-1">Selling Price (৳)</label>
                   <input
                     type="number"
                     required
@@ -227,10 +227,10 @@ export default function InventoryPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold mb-1">সাপ্লায়ারের নাম</label>
+                <label className="block text-xs font-semibold mb-1">Supplier Name</label>
                 <input
                   type="text"
-                  placeholder="e.g., রহমান অটো পার্টস"
+                  placeholder="e.g., Rahman Auto Parts"
                   value={form.supplierName}
                   onChange={(e) => setForm({ ...form, supplierName: e.target.value })}
                   className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
@@ -243,13 +243,13 @@ export default function InventoryPage() {
                   onClick={() => setIsOpen(false)}
                   className="px-4 py-2 text-sm rounded-xl border border-slate-300 text-slate-600"
                 >
-                  বাতিল
+                  Cancel
                 </button>
                 <button
                   type="submit"
                   className="px-5 py-2 text-sm font-semibold rounded-xl bg-emerald-600 text-white"
                 >
-                  সংরক্ষণ
+                  Save Item
                 </button>
               </div>
             </form>

@@ -12,11 +12,11 @@ import {
 import { cn } from "@/lib/utils";
 
 const items = [
-  { href: "/", label: "Home", icon: LayoutDashboard },
-  { href: "/daily", label: "দৈনিক", icon: CalendarCheck2 },
-  { href: "/monthly", label: "মাসিক", icon: BarChart3 },
-  { href: "/dues/customers", label: "কাস্টমার বাকি", icon: CreditCard },
-  { href: "/dues", label: "সব বাকি", icon: Scale },
+  { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/daily", label: "Daily Sheet", icon: CalendarCheck2 },
+  { href: "/monthly", label: "Monthly", icon: BarChart3 },
+  { href: "/dues/customers", label: "Customer Dues", icon: CreditCard },
+  { href: "/dues", label: "Due Ledger", icon: Scale },
 ];
 
 export function MobileNav() {

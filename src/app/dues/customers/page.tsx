@@ -11,8 +11,6 @@ import {
   History,
   Phone,
   Bike as BikeIcon,
-  ChevronRight,
-  Receipt,
   Search,
 } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
@@ -41,7 +39,7 @@ export default function CustomerDuesPage() {
       const data = await res.json();
       setDues(Array.isArray(data) ? data : []);
     } catch (err: any) {
-      toast.error("বাকি তালিকা লোড করতে সমস্যা হয়েছে: " + err.message);
+      toast.error("Failed to load dues: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -59,12 +57,12 @@ export default function CustomerDuesPage() {
     try {
       const payAmount = Number(paymentForm.amount);
       if (!payAmount || payAmount <= 0) {
-        toast.warning("সঠিক টাকার পরিমাণ দিন");
+        toast.warning("Please enter a valid payment amount");
         return;
       }
 
       if (payAmount > selectedDue.remainingAmount) {
-        if (!confirm(`বাকি আছে ${formatCurrency(selectedDue.remainingAmount)}। আপনি দিতে চাচ্ছেন ${formatCurrency(payAmount)}। চালিয়ে যাবেন?`)) {
+        if (!confirm(`Remaining due is ${formatCurrency(selectedDue.remainingAmount)}. You entered ${formatCurrency(payAmount)}. Continue?`)) {
           return;
         }
       }
@@ -82,7 +80,7 @@ export default function CustomerDuesPage() {
 
       if (!res.ok) throw new Error("Failed to record installment");
 
-      toast.success("কিস্তি পেমেন্ট সফলভাবে সংরক্ষিত হয়েছে!");
+      toast.success("Installment payment recorded successfully!");
       setIsPaymentModalOpen(false);
       setPaymentForm({
         amount: "",
@@ -118,10 +116,10 @@ export default function CustomerDuesPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
             <CreditCard className="w-6 h-6 text-emerald-600" />
-            <span>কাস্টমার বাকি ও কিস্তি খাতা (Customer Dues & Installments)</span>
+            <span>Customer Dues & Installment Ledger</span>
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            কোন কাস্টমারের কাছে কত টাকা পাই, কোন বাইকের কাজ, এবং তারিখ অনুযায়ী কত কিস্তি পরিশোধ করেছে তার হিসাব।
+            Track money customers owe to the workshop, linked to their original bike service, with date-wise installment payments.
           </p>
         </div>
 
@@ -130,7 +128,7 @@ export default function CustomerDuesPage() {
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="কাস্টমার নাম, ফোন বা বাইক..."
+            placeholder="Search customer, phone, or bike..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-4 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
@@ -142,31 +140,31 @@ export default function CustomerDuesPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <div className="bg-gradient-to-br from-rose-500/10 via-rose-500/5 to-transparent border border-rose-500/30 rounded-2xl p-5 shadow-sm">
           <div className="text-xs font-semibold uppercase tracking-wider text-rose-700 dark:text-rose-400">
-            মোট পাওনা বাকি (Total Remaining Dues)
+            Total Outstanding Dues
           </div>
           <div className="text-3xl font-extrabold text-slate-900 dark:text-white mt-3">
             {formatCurrency(totalOutstanding)}
           </div>
           <div className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-            বর্তমানে মোট {dues.filter((d) => d.status !== "CLEARED").length} টি বাকি একাউন্ট সক্রিয় আছে
+            Currently {dues.filter((d) => d.status !== "CLEARED").length} active customer accounts with dues
           </div>
         </div>
 
         <div className="bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/30 rounded-2xl p-5 shadow-sm">
           <div className="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
-            মোট কিস্তিতে আদায় (Total Collected)
+            Total Collected in Installments
           </div>
           <div className="text-3xl font-extrabold text-slate-900 dark:text-white mt-3">
             {formatCurrency(totalCollected)}
           </div>
           <div className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-            কাস্টমারদের নিকট হতে নগদ/বিকাশে মোট কিস্তি প্রাপ্তি
+            Total received across upfront and subsequent installment payments
           </div>
         </div>
 
         <div className="bg-gradient-to-br from-slate-500/10 via-slate-500/5 to-transparent border border-slate-300 dark:border-slate-700 rounded-2xl p-5 shadow-sm">
           <div className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-            ফিল্টার ভিউ
+            Filter Status
           </div>
           <div className="flex gap-2 mt-3">
             {["ALL", "UNPAID", "PARTIAL", "CLEARED"].map((status) => (
@@ -180,12 +178,12 @@ export default function CustomerDuesPage() {
                 }`}
               >
                 {status === "ALL"
-                  ? "সকল"
+                  ? "All"
                   : status === "UNPAID"
-                  ? "বাকি"
+                  ? "Unpaid"
                   : status === "PARTIAL"
-                  ? "আংশিক"
-                  : "পরিশোধিত"}
+                  ? "Partial"
+                  : "Cleared"}
               </button>
             ))}
           </div>
@@ -196,16 +194,16 @@ export default function CustomerDuesPage() {
       <div className="space-y-4">
         {loading ? (
           <div className="py-16 text-center text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
-            লোড হচ্ছে...
+            Loading dues...
           </div>
         ) : filteredDues.length === 0 ? (
           <div className="py-16 text-center text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
-            কোনো কাস্টমার বাকি রেকর্ড পাওয়া যায়নি।
+            No customer dues matching the current filter.
           </div>
         ) : (
           filteredDues.map((due) => {
-            const customerName = due.customerName || due.customer?.name || "গ্রাহক";
-            const bikeModel = due.bikeName || due.bike?.model || "বাইক";
+            const customerName = due.customerName || due.customer?.name || "Customer";
+            const bikeModel = due.bikeName || due.bike?.model || "Bike";
             const isCleared = due.status === "CLEARED";
             const isOverdue =
               due.dueDate && new Date(due.dueDate) < new Date() && !isCleared;
@@ -238,16 +236,16 @@ export default function CustomerDuesPage() {
                         }`}
                       >
                         {isCleared
-                          ? "✓ সম্পূর্ণ পরিশোধিত"
+                          ? "✓ Cleared"
                           : due.status === "PARTIAL"
-                          ? "আংশিক পরিশোধিত"
-                          : "বাকি (Unpaid)"}
+                          ? "Partial Due"
+                          : "Full Due"}
                       </span>
 
                       {isOverdue && (
                         <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-600 text-white flex items-center gap-1 animate-pulse">
                           <AlertCircle className="w-3 h-3" />
-                          মেয়াদ উত্তীর্ণ (Overdue)
+                          Overdue
                         </span>
                       )}
                     </div>
@@ -265,17 +263,17 @@ export default function CustomerDuesPage() {
                       )}
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                        এন্ট্রি তারিখ: {formatDate(due.date)}
+                        Entry Date: {formatDate(due.date)}
                       </span>
                       {due.dueDate && (
                         <span className="flex items-center gap-1 font-semibold text-rose-600 dark:text-rose-400">
                           <Clock className="w-3.5 h-3.5" />
-                          পরিশোধের শেষ তারিখ: {formatDate(due.dueDate)}
+                          Due By: {formatDate(due.dueDate)}
                         </span>
                       )}
                       {due.serviceId && (
                         <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-mono text-[11px] text-slate-600 dark:text-slate-400">
-                          🔗 সেলস রেফারেন্স: #{due.serviceId.slice(-6)}
+                          🔗 Service Ref: #{due.serviceId.slice(-6)}
                         </span>
                       )}
                     </div>
@@ -285,7 +283,7 @@ export default function CustomerDuesPage() {
                   <div className="flex items-center gap-6 border-y lg:border-y-0 lg:border-x border-slate-100 dark:border-slate-800 py-3 lg:py-0 lg:px-6">
                     <div>
                       <span className="text-[11px] font-semibold uppercase text-slate-400 block">
-                        মোট বিল
+                        Total Bill
                       </span>
                       <span className="text-base font-bold text-slate-700 dark:text-slate-300">
                         {formatCurrency(due.totalAmount)}
@@ -294,7 +292,7 @@ export default function CustomerDuesPage() {
 
                     <div>
                       <span className="text-[11px] font-semibold uppercase text-emerald-600 dark:text-emerald-400 block">
-                        পরিশোধ করেছে
+                        Total Paid
                       </span>
                       <span className="text-base font-bold text-emerald-600 dark:text-emerald-400">
                         {formatCurrency(due.paidAmount)}
@@ -303,7 +301,7 @@ export default function CustomerDuesPage() {
 
                     <div>
                       <span className="text-[11px] font-semibold uppercase text-rose-600 dark:text-rose-400 block">
-                        অবশিষ্ট বাকি
+                        Remaining Due
                       </span>
                       <span className="text-xl font-extrabold text-rose-600 dark:text-rose-400">
                         {formatCurrency(due.remainingAmount)}
@@ -328,12 +326,12 @@ export default function CustomerDuesPage() {
                         className="w-full lg:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-xs transition-colors"
                       >
                         <Plus className="w-4 h-4" />
-                        <span>কিস্তি গ্রহণ করুন (Record Installment)</span>
+                        <span>Record Installment</span>
                       </button>
                     ) : (
                       <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                         <CheckCircle2 className="w-4 h-4" />
-                        <span>লেনদেন সম্পন্ন</span>
+                        <span>Cleared</span>
                       </div>
                     )}
                   </div>
@@ -344,11 +342,11 @@ export default function CustomerDuesPage() {
                   <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80">
                     <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">
                       <History className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>কিস্তি পরিশোধের তারিখ ও ইতিহাস ({due.installments.length} টি কিস্তি):</span>
+                      <span>Installment Payment Log ({due.installments.length} payments):</span>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                      {due.installments.map((inst: any, idx: number) => (
+                      {due.installments.map((inst: any) => (
                         <div
                           key={inst.id}
                           className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 text-xs"
@@ -385,10 +383,10 @@ export default function CustomerDuesPage() {
               <div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <CreditCard className="w-5 h-5 text-emerald-600" />
-                  <span>কিস্তি পেমেন্ট গ্রহণ (Installment Entry)</span>
+                  <span>Record Customer Installment</span>
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  গ্রাহক: {selectedDue.customerName || selectedDue.customer?.name} (বাকি:{" "}
+                  Customer: {selectedDue.customerName || selectedDue.customer?.name} (Remaining Due:{" "}
                   {formatCurrency(selectedDue.remainingAmount)})
                 </p>
               </div>
@@ -403,7 +401,7 @@ export default function CustomerDuesPage() {
             <form onSubmit={handleRecordPayment} className="mt-4 space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  পরিশোধকৃত কিস্তির পরিমাণ (Amount ৳)
+                  Payment Amount (৳)
                 </label>
                 <input
                   type="number"
@@ -418,7 +416,7 @@ export default function CustomerDuesPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  পেমেন্ট মাধ্যম
+                  Payment Method
                 </label>
                 <select
                   value={paymentForm.method}
@@ -427,16 +425,16 @@ export default function CustomerDuesPage() {
                   }
                   className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                 >
-                  <option value="CASH">ক্যাশ (Cash)</option>
-                  <option value="BKASH">বিকাশ (bKash)</option>
-                  <option value="NAGAD">নগদ (Nagad)</option>
-                  <option value="BANK">ব্যাংক ট্রান্সফার (Bank)</option>
+                  <option value="CASH">Cash</option>
+                  <option value="BKASH">bKash</option>
+                  <option value="NAGAD">Nagad</option>
+                  <option value="BANK">Bank Transfer</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  পরিশোধের তারিখ (Date)
+                  Payment Date
                 </label>
                 <input
                   type="date"
@@ -451,11 +449,11 @@ export default function CustomerDuesPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  মন্তব্য / নোট (Optional Note)
+                  Note / Remarks (Optional)
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g., ২য় কিস্তি পরিশোধ করলো"
+                  placeholder="e.g., Partial installment paid"
                   value={paymentForm.note}
                   onChange={(e) =>
                     setPaymentForm({ ...paymentForm, note: e.target.value })
@@ -470,13 +468,13 @@ export default function CustomerDuesPage() {
                   onClick={() => setIsPaymentModalOpen(false)}
                   className="px-4 py-2 text-sm font-semibold rounded-xl border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                 >
-                  বাতিল
+                  Cancel
                 </button>
                 <button
                   type="submit"
                   className="px-5 py-2 text-sm font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
                 >
-                  কিস্তি জমা করুন (Save Payment)
+                  Save Payment
                 </button>
               </div>
             </form>

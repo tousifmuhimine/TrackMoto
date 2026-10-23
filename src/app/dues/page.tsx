@@ -7,11 +7,9 @@ import {
   ArrowDownLeft,
   ArrowUpRight,
   Calendar,
-  Building2,
   Phone,
   Clock,
   History,
-  CheckCircle2,
 } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { toast } from "sonner";
@@ -55,7 +53,7 @@ export default function BidirectionalDuesPage() {
       setEntries(Array.isArray(data.entries) ? data.entries : []);
       setPartySummary(Array.isArray(data.partySummary) ? data.partySummary : []);
     } catch (err: any) {
-      toast.error("ডাটা লোড করতে সমস্যা হয়েছে: " + err.message);
+      toast.error("Failed to load records: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -86,7 +84,7 @@ export default function BidirectionalDuesPage() {
 
       if (!res.ok) throw new Error("Failed to create entry");
 
-      toast.success("নতুন বাকি/লেনদেন রেকর্ড সফলভাবে সংরক্ষিত হয়েছে!");
+      toast.success("Due entry added successfully!");
       setIsEntryModalOpen(false);
       setEntryForm({
         partyName: "",
@@ -112,7 +110,7 @@ export default function BidirectionalDuesPage() {
     try {
       const payAmount = Number(paymentForm.amount);
       if (!payAmount || payAmount <= 0) {
-        toast.warning("সঠিক টাকার পরিমাণ দিন");
+        toast.warning("Please provide a valid amount");
         return;
       }
 
@@ -129,7 +127,7 @@ export default function BidirectionalDuesPage() {
 
       if (!res.ok) throw new Error("Failed to record payment");
 
-      toast.success("পেমেন্ট সফলভাবে সংরক্ষিত হয়েছে!");
+      toast.success("Payment recorded successfully!");
       setIsPaymentModalOpen(false);
       setPaymentForm({
         amount: "",
@@ -160,10 +158,10 @@ export default function BidirectionalDuesPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
             <Scale className="w-6 h-6 text-emerald-600" />
-            <span>দ্বিমুখী বাকি ও পাওনা খাতা (Bidirectional Due & Pay Ledger)</span>
+            <span>Bidirectional Due & Pay Ledger</span>
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            আমার কাছে যারা টাকা পায় (সাপ্লায়ার বাকি) এবং আমরা যাদের কাছে টাকা পাই — উভয় হিসাব তারিখসহ ট্র্যাক করুন।
+            Track money owed by the workshop to suppliers and money owed to the workshop by other parties with date-stamped logs.
           </p>
         </div>
 
@@ -175,7 +173,7 @@ export default function BidirectionalDuesPage() {
           className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-sm transition-all"
         >
           <Plus className="w-4 h-4" />
-          <span>নতুন লেনদেন এন্ট্রি (+ Add Due)</span>
+          <span>Add Due Entry</span>
         </button>
       </div>
 
@@ -184,7 +182,7 @@ export default function BidirectionalDuesPage() {
         <div className="bg-gradient-to-br from-rose-500/10 via-rose-500/5 to-transparent border border-rose-500/30 rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-rose-700 dark:text-rose-400">
-              আমরা দেবো (We Owe Them / আমাদের দেনা)
+              We Owe Them (Payable)
             </span>
             <div className="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center">
               <ArrowDownLeft className="w-4 h-4" />
@@ -196,14 +194,14 @@ export default function BidirectionalDuesPage() {
             </span>
           </div>
           <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-            পার্টস সাপ্লায়ার, দোকান মালিক বা অন্যদের পাওনা
+            Total unpaid liabilities to parts suppliers, landlords, and vendors
           </div>
         </div>
 
         <div className="bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/30 rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
-              আমরা পাবো (They Owe Us / আমাদের পাওনা)
+              They Owe Us (Receivable)
             </span>
             <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
               <ArrowUpRight className="w-4 h-4" />
@@ -215,13 +213,13 @@ export default function BidirectionalDuesPage() {
             </span>
           </div>
           <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-            কাস্টমার ও সরবরাহকারীদের কাছে আমাদের পাওনা
+            Total money to collect from external parties
           </div>
         </div>
 
         <div className="bg-gradient-to-br from-slate-500/10 via-slate-500/5 to-transparent border border-slate-300 dark:border-slate-700 rounded-2xl p-5 shadow-sm">
           <div className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-            নিট ব্যালেন্স অবস্থা (Overall Position)
+            Net Ledger Position
           </div>
           <div className="mt-3">
             <span
@@ -230,12 +228,12 @@ export default function BidirectionalDuesPage() {
               }`}
             >
               {totalReceivable >= totalPayable
-                ? `পাওনা বেশি: +${formatCurrency(totalReceivable - totalPayable)}`
-                : `দেনা বেশি: -${formatCurrency(totalPayable - totalReceivable)}`}
+                ? `Net Receivable: +${formatCurrency(totalReceivable - totalPayable)}`
+                : `Net Payable: -${formatCurrency(totalPayable - totalReceivable)}`}
             </span>
           </div>
           <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-            উভয় দিকের সমন্বিত নিট পার্থক্য
+            Receivables minus Payables balance
           </div>
         </div>
       </div>
@@ -251,7 +249,7 @@ export default function BidirectionalDuesPage() {
           }`}
         >
           <ArrowDownLeft className="w-4 h-4" />
-          <span>১. আমাদের দেনা (আমরা দেবো / We Owe)</span>
+          <span>1. We Owe (Payable / Suppliers)</span>
           <span className="px-2 py-0.5 rounded-full text-xs bg-rose-100 dark:bg-rose-950 text-rose-700 font-semibold">
             {entries.filter((e) => e.direction === "PAYABLE").length}
           </span>
@@ -266,7 +264,7 @@ export default function BidirectionalDuesPage() {
           }`}
         >
           <ArrowUpRight className="w-4 h-4" />
-          <span>২. আমাদের পাওনা (আমরা পাবো / They Owe Us)</span>
+          <span>2. They Owe Us (Receivable)</span>
           <span className="px-2 py-0.5 rounded-full text-xs bg-emerald-100 dark:bg-emerald-950 text-emerald-700 font-semibold">
             {entries.filter((e) => e.direction === "RECEIVABLE").length}
           </span>
@@ -281,7 +279,7 @@ export default function BidirectionalDuesPage() {
           }`}
         >
           <Scale className="w-4 h-4" />
-          <span>৩. একই পার্টির দ্বিমুখী নিট ব্যালেন্স (Party Net Summary)</span>
+          <span>3. Party Net Summary (Both Sides)</span>
         </button>
       </div>
 
@@ -290,11 +288,11 @@ export default function BidirectionalDuesPage() {
         <div className="space-y-4">
           {loading ? (
             <div className="py-16 text-center text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
-              লোড হচ্ছে...
+              Loading entries...
             </div>
           ) : filteredEntries.length === 0 ? (
             <div className="py-16 text-center text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
-              এই বিভাগে কোনো এন্ট্রি নেই। "+ নতুন লেনদেন এন্ট্রি" এ ক্লিক করে যোগ করুন।
+              No entries in this ledger. Click "+ Add Due Entry" to add one.
             </div>
           ) : (
             filteredEntries.map((item) => {
@@ -311,7 +309,7 @@ export default function BidirectionalDuesPage() {
                     <div>
                       <div className="flex items-center gap-3">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                          {item.party?.name || "পার্টি"}
+                          {item.party?.name || "Party"}
                         </h3>
                         <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                           {item.party?.type}
@@ -325,12 +323,12 @@ export default function BidirectionalDuesPage() {
                               : "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300"
                           }`}
                         >
-                          {isCleared ? "পরিশোধিত" : item.status === "PARTIAL" ? "আংশিক" : "বাকি"}
+                          {isCleared ? "Cleared" : item.status === "PARTIAL" ? "Partial" : "Unpaid"}
                         </span>
                       </div>
 
                       <p className="text-sm text-slate-700 dark:text-slate-300 font-medium mt-1">
-                        কারণ: {item.reason}
+                        Reason: {item.reason}
                       </p>
 
                       <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-slate-400 mt-2">
@@ -342,12 +340,12 @@ export default function BidirectionalDuesPage() {
                         )}
                         <span className="flex items-center gap-1">
                           <Calendar className="w-3.5 h-3.5" />
-                          তারিখ: {formatDate(item.createdAt)}
+                          Date: {formatDate(item.createdAt)}
                         </span>
                         {item.dueDate && (
                           <span className="flex items-center gap-1 font-semibold text-rose-600 dark:text-rose-400">
                             <Clock className="w-3.5 h-3.5" />
-                            পরিশোধের মেয়াদ: {formatDate(item.dueDate)}
+                            Due By: {formatDate(item.dueDate)}
                           </span>
                         )}
                       </div>
@@ -357,7 +355,7 @@ export default function BidirectionalDuesPage() {
                     <div className="flex items-center gap-6 border-y lg:border-y-0 lg:border-x border-slate-100 dark:border-slate-800 py-3 lg:py-0 lg:px-6">
                       <div>
                         <span className="text-[11px] font-semibold uppercase text-slate-400 block">
-                          মোট হিসাব
+                          Total Amount
                         </span>
                         <span className="text-base font-bold text-slate-700 dark:text-slate-300">
                           {formatCurrency(item.totalAmount)}
@@ -366,7 +364,7 @@ export default function BidirectionalDuesPage() {
 
                       <div>
                         <span className="text-[11px] font-semibold uppercase text-emerald-600 block">
-                          পরিশোধ হয়েছে
+                          Paid
                         </span>
                         <span className="text-base font-bold text-emerald-600">
                           {formatCurrency(item.paidAmount)}
@@ -375,7 +373,7 @@ export default function BidirectionalDuesPage() {
 
                       <div>
                         <span className="text-[11px] font-semibold uppercase text-rose-600 block">
-                          অবশিষ্ট বাকি
+                          Remaining Due
                         </span>
                         <span className="text-xl font-extrabold text-rose-600">
                           {formatCurrency(item.remainingAmount)}
@@ -404,7 +402,7 @@ export default function BidirectionalDuesPage() {
                           }`}
                         >
                           <Plus className="w-4 h-4" />
-                          <span>{isPayable ? "টাকা প্রদান করুন (Pay)" : "টাকা গ্রহণ করুন (Receive)"}</span>
+                          <span>{isPayable ? "Record Payment Made" : "Record Payment Received"}</span>
                         </button>
                       )}
                     </div>
@@ -415,7 +413,7 @@ export default function BidirectionalDuesPage() {
                     <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
                       <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">
                         <History className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>পেমেন্ট পরিশোধের ইতিহাস (Payment Log):</span>
+                        <span>Payment History:</span>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                         {item.payments.map((p: any) => (
@@ -450,9 +448,6 @@ export default function BidirectionalDuesPage() {
         /* Tab 3: Summary of Bidirectional Parties */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {partySummary.map((ps) => {
-            const hasReceivable = ps.totalReceivable > 0;
-            const hasPayable = ps.totalPayable > 0;
-
             return (
               <div
                 key={ps.party.id}
@@ -469,17 +464,17 @@ export default function BidirectionalDuesPage() {
 
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between items-center text-emerald-600 dark:text-emerald-400">
-                    <span>আমরা পাবো (Receivable):</span>
+                    <span>They Owe Us (Receivable):</span>
                     <span className="font-bold">{formatCurrency(ps.totalReceivable)}</span>
                   </div>
 
                   <div className="flex justify-between items-center text-rose-600 dark:text-rose-400">
-                    <span>আমরা দেবো (Payable):</span>
+                    <span>We Owe Them (Payable):</span>
                     <span className="font-bold">{formatCurrency(ps.totalPayable)}</span>
                   </div>
 
                   <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center font-extrabold text-base">
-                    <span>সমন্বিত নিট (Net Balance):</span>
+                    <span>Net Balance Position:</span>
                     <span
                       className={
                         ps.netBalance >= 0
@@ -488,8 +483,8 @@ export default function BidirectionalDuesPage() {
                       }
                     >
                       {ps.netBalance >= 0
-                        ? `পাবো ${formatCurrency(ps.netBalance)}`
-                        : `দেবো ${formatCurrency(Math.abs(ps.netBalance))}`}
+                        ? `Receivable ${formatCurrency(ps.netBalance)}`
+                        : `Payable ${formatCurrency(Math.abs(ps.netBalance))}`}
                     </span>
                   </div>
                 </div>
@@ -506,7 +501,7 @@ export default function BidirectionalDuesPage() {
             <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Scale className="w-5 h-5 text-emerald-600" />
-                <span>নতুন বাকি লেনদেন রেকর্ড</span>
+                <span>Add Due Record</span>
               </h3>
               <button
                 onClick={() => setIsEntryModalOpen(false)}
@@ -519,7 +514,7 @@ export default function BidirectionalDuesPage() {
             <form onSubmit={handleCreateEntry} className="mt-4 space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  লেনদেনের ধরন (Direction)
+                  Direction
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
@@ -531,7 +526,7 @@ export default function BidirectionalDuesPage() {
                         : "border-slate-300 dark:border-slate-700 text-slate-600"
                     }`}
                   >
-                    আমরা দেবো (We Owe)
+                    We Owe (Payable)
                   </button>
                   <button
                     type="button"
@@ -542,19 +537,19 @@ export default function BidirectionalDuesPage() {
                         : "border-slate-300 dark:border-slate-700 text-slate-600"
                     }`}
                   >
-                    আমরা পাবো (They Owe)
+                    They Owe Us (Receivable)
                   </button>
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  পার্টি / কোম্পানির নাম (Name)
+                  Company / Party Name
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g., রহমান অটো পার্টস / মেকানিক জামাল"
+                  placeholder="e.g., Rahman Auto Parts, Mechanic Jamal"
                   value={entryForm.partyName}
                   onChange={(e) => setEntryForm({ ...entryForm, partyName: e.target.value })}
                   className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
@@ -563,11 +558,11 @@ export default function BidirectionalDuesPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  মোবাইল নম্বর (Phone)
+                  Phone Number
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g., 01711223344"
+                  placeholder="e.g., +1 234 567 890"
                   value={entryForm.partyPhone}
                   onChange={(e) => setEntryForm({ ...entryForm, partyPhone: e.target.value })}
                   className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
@@ -576,12 +571,12 @@ export default function BidirectionalDuesPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  কারণ / বিবরণ (Reason)
+                  Reason / Description
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g., স্পেয়ার পার্টস ক্রয় বা ইঞ্জিন সার্ভিস বাকি"
+                  placeholder="e.g., Spare parts purchase, workshop rent, service due"
                   value={entryForm.reason}
                   onChange={(e) => setEntryForm({ ...entryForm, reason: e.target.value })}
                   className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
@@ -591,7 +586,7 @@ export default function BidirectionalDuesPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    মোট টাকার পরিমাণ (৳)
+                    Total Amount (৳)
                   </label>
                   <input
                     type="number"
@@ -604,7 +599,7 @@ export default function BidirectionalDuesPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    কত টাকা দিয়েছেন/পেয়েছেন? (৳)
+                    Paid / Received (৳)
                   </label>
                   <input
                     type="number"
@@ -618,7 +613,7 @@ export default function BidirectionalDuesPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  পরিশোধের মেয়াদ তারিখ (Due Date)
+                  Due Date
                 </label>
                 <input
                   type="date"
@@ -634,13 +629,13 @@ export default function BidirectionalDuesPage() {
                   onClick={() => setIsEntryModalOpen(false)}
                   className="px-4 py-2 text-sm font-semibold rounded-xl border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100"
                 >
-                  বাতিল
+                  Cancel
                 </button>
                 <button
                   type="submit"
                   className="px-5 py-2 text-sm font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
                 >
-                  সংরক্ষণ করুন
+                  Save Entry
                 </button>
               </div>
             </form>
@@ -656,10 +651,10 @@ export default function BidirectionalDuesPage() {
               <div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <Scale className="w-5 h-5 text-emerald-600" />
-                  <span>পেমেন্ট প্রদান/গ্রহণ এন্ট্রি</span>
+                  <span>Record Payment</span>
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  পার্টি: {selectedEntry.party?.name} (অবশিষ্ট বাকি: {formatCurrency(selectedEntry.remainingAmount)})
+                  Party: {selectedEntry.party?.name} (Remaining Due: {formatCurrency(selectedEntry.remainingAmount)})
                 </p>
               </div>
               <button
@@ -673,7 +668,7 @@ export default function BidirectionalDuesPage() {
             <form onSubmit={handleRecordPayment} className="mt-4 space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  টাকার পরিমাণ (Amount ৳)
+                  Amount (৳)
                 </label>
                 <input
                   type="number"
@@ -686,23 +681,23 @@ export default function BidirectionalDuesPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  পেমেন্ট মেথড
+                  Payment Method
                 </label>
                 <select
                   value={paymentForm.method}
                   onChange={(e) => setPaymentForm({ ...paymentForm, method: e.target.value })}
                   className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                 >
-                  <option value="CASH">ক্যাশ (Cash)</option>
-                  <option value="BKASH">বিকাশ (bKash)</option>
-                  <option value="NAGAD">নগদ (Nagad)</option>
-                  <option value="BANK">ব্যাংক (Bank)</option>
+                  <option value="CASH">Cash</option>
+                  <option value="BKASH">bKash</option>
+                  <option value="NAGAD">Nagad</option>
+                  <option value="BANK">Bank</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  তারিখ (Date)
+                  Payment Date
                 </label>
                 <input
                   type="date"
@@ -715,11 +710,11 @@ export default function BidirectionalDuesPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  নোট (Optional Note)
+                  Remarks / Note
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g., নগদ ক্যাশ পরিশোধ করা হলো"
+                  placeholder="e.g., Paid in cash"
                   value={paymentForm.note}
                   onChange={(e) => setPaymentForm({ ...paymentForm, note: e.target.value })}
                   className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
@@ -732,13 +727,13 @@ export default function BidirectionalDuesPage() {
                   onClick={() => setIsPaymentModalOpen(false)}
                   className="px-4 py-2 text-sm font-semibold rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-100"
                 >
-                  বাতিল
+                  Cancel
                 </button>
                 <button
                   type="submit"
                   className="px-5 py-2 text-sm font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
                 >
-                  সংরক্ষণ করুন
+                  Save Payment
                 </button>
               </div>
             </form>

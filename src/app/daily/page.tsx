@@ -7,14 +7,11 @@ import {
   Trash2,
   TrendingUp,
   TrendingDown,
-  DollarSign,
   Wrench,
   Receipt,
   ChevronLeft,
   ChevronRight,
-  Clock,
-  Sparkles,
-} from "lucide-react";
+} from "date-fns" ? require("lucide-react") : require("lucide-react");
 import { format, addDays, subDays } from "date-fns";
 import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
@@ -69,7 +66,7 @@ export default function DailySheetPage() {
       setServices(Array.isArray(dataServices) ? dataServices : []);
       setExpenses(Array.isArray(dataExpenses) ? dataExpenses : []);
     } catch (err: any) {
-      toast.error("ডাটা লোড করতে সমস্যা হয়েছে: " + err.message);
+      toast.error("Failed to load records: " + err.message);
     } finally {
       setLoading(false);
     }
@@ -129,7 +126,7 @@ export default function DailySheetPage() {
 
       if (!res.ok) throw new Error("Failed to save service");
 
-      toast.success("নতুন সার্ভিস এন্ট্রি সফল হয়েছে!");
+      toast.success("Service record added successfully!");
       setIsServiceModalOpen(false);
       setServiceForm({
         customerName: "",
@@ -157,7 +154,7 @@ export default function DailySheetPage() {
     e.preventDefault();
     try {
       if (!expenseForm.description || !expenseForm.amount) {
-        toast.warning("বিবরণ ও টাকার পরিমাণ দিন");
+        toast.warning("Please provide description and amount");
         return;
       }
 
@@ -174,7 +171,7 @@ export default function DailySheetPage() {
 
       if (!res.ok) throw new Error("Failed to save expense");
 
-      toast.success("খরচ সফলভাবে যোগ হয়েছে!");
+      toast.success("Expense added successfully!");
       setIsExpenseModalOpen(false);
       setExpenseForm({ description: "", amount: "", category: "MISC" });
       fetchData();
@@ -185,11 +182,11 @@ export default function DailySheetPage() {
 
   // Handle Delete Service
   const handleDeleteService = async (id: string) => {
-    if (!confirm("আপনি কি নিশ্চিত এই সার্ভিস রেকর্ডটি ডিলিট করতে চান?")) return;
+    if (!confirm("Are you sure you want to delete this service record?")) return;
     try {
       const res = await fetch(`/api/services/${id}`, { method: "DELETE" });
       if (res.ok) {
-        toast.success("সার্ভিস মুছে ফেলা হয়েছে");
+        toast.success("Service record deleted");
         fetchData();
       }
     } catch (err: any) {
@@ -199,11 +196,11 @@ export default function DailySheetPage() {
 
   // Handle Delete Expense
   const handleDeleteExpense = async (id: string) => {
-    if (!confirm("আপনি কি নিশ্চিত এই খরচ রেকর্ডটি ডিলিট করতে চান?")) return;
+    if (!confirm("Are you sure you want to delete this expense record?")) return;
     try {
       const res = await fetch(`/api/expenses/${id}`, { method: "DELETE" });
       if (res.ok) {
-        toast.success("খরচ মুছে ফেলা হয়েছে");
+        toast.success("Expense record deleted");
         fetchData();
       }
     } catch (err: any) {
@@ -217,10 +214,10 @@ export default function DailySheetPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
-            <span>📅 দৈনিক হিসাব শিট (Daily Service Sheet)</span>
+            <span>📅 Daily Service & Expense Sheet</span>
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            প্রতিদিনের সার্ভিস, স্পেয়ার পার্টস, ইঞ্জিন অয়েল ও ডায়নামিক খরচের হিসাব।
+            Track daily services, spare parts, engine oil, and dynamic expenses in one place.
           </p>
         </div>
 
@@ -229,7 +226,7 @@ export default function DailySheetPage() {
           <button
             onClick={() => setSelectedDate(subDays(selectedDate, 1))}
             className="p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors"
-            title="আগের দিন"
+            title="Previous Day"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -242,7 +239,7 @@ export default function DailySheetPage() {
           <button
             onClick={() => setSelectedDate(addDays(selectedDate, 1))}
             className="p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors"
-            title="পরের দিন"
+            title="Next Day"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
@@ -251,7 +248,7 @@ export default function DailySheetPage() {
             onClick={() => setSelectedDate(new Date())}
             className="ml-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
           >
-            আজ (Today)
+            Today
           </button>
         </div>
       </div>
@@ -262,7 +259,7 @@ export default function DailySheetPage() {
         <div className="bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/30 rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
-              মোট দৈনিক আয় (Total Income)
+              Total Daily Income
             </span>
             <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
               <TrendingUp className="w-4 h-4" />
@@ -274,10 +271,10 @@ export default function DailySheetPage() {
             </span>
           </div>
           <div className="mt-3 pt-3 border-t border-emerald-500/20 text-xs text-slate-500 dark:text-slate-400 flex flex-wrap gap-2">
-            <span>সার্ভিস: {formatCurrency(totalServiceCharge)}</span> •
-            <span>পার্টস: {formatCurrency(totalSpareParts)}</span> •
-            <span>অয়েল: {formatCurrency(totalEngineOil)}</span> •
-            <span>এক্সট্রা: {formatCurrency(totalExtra)}</span>
+            <span>Service: {formatCurrency(totalServiceCharge)}</span> •
+            <span>Parts: {formatCurrency(totalSpareParts)}</span> •
+            <span>Oil: {formatCurrency(totalEngineOil)}</span> •
+            <span>Extra: {formatCurrency(totalExtra)}</span>
           </div>
         </div>
 
@@ -285,7 +282,7 @@ export default function DailySheetPage() {
         <div className="bg-gradient-to-br from-rose-500/10 via-rose-500/5 to-transparent border border-rose-500/30 rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-rose-700 dark:text-rose-400">
-              মোট দৈনিক খরচ (Total Expense)
+              Total Daily Expenses
             </span>
             <div className="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center">
               <TrendingDown className="w-4 h-4" />
@@ -297,7 +294,7 @@ export default function DailySheetPage() {
             </span>
           </div>
           <div className="mt-3 pt-3 border-t border-rose-500/20 text-xs text-slate-500 dark:text-slate-400">
-            {expenses.length} টি আলাদা খরচ এন্ট্রি রেকর্ড করা হয়েছে
+            {expenses.length} dynamic expense entries recorded today
           </div>
         </div>
 
@@ -311,7 +308,7 @@ export default function DailySheetPage() {
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-              আজকের নিট অবশিষ্ট (Net Total)
+              Today's Net Profit / Balance
             </span>
             <span
               className={`px-2 py-0.5 text-xs font-bold rounded-md ${
@@ -320,7 +317,7 @@ export default function DailySheetPage() {
                   : "bg-rose-500/20 text-rose-700 dark:text-rose-300"
               }`}
             >
-              {netTotal >= 0 ? "লাভ (PROFIT)" : "ঘাটতি (LOSS)"}
+              {netTotal >= 0 ? "PROFIT" : "LOSS"}
             </span>
           </div>
           <div className="mt-3">
@@ -335,7 +332,7 @@ export default function DailySheetPage() {
             </span>
           </div>
           <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400">
-            মোট আয় {formatCurrency(totalIncome)} - খরচ {formatCurrency(totalExpense)}
+            Income {formatCurrency(totalIncome)} - Expenses {formatCurrency(totalExpense)}
           </div>
         </div>
       </div>
@@ -346,13 +343,13 @@ export default function DailySheetPage() {
           <div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <Wrench className="w-5 h-5 text-emerald-600" />
-              <span>সার্ভিস ও বিক্রয় হিসাব (Services & Sales)</span>
+              <span>Services & Sales Entries</span>
               <span className="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-xs font-semibold">
                 {services.length}
               </span>
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Service + Spare Parts + Engine Oil + Extra যোগ হয়ে মোট বিল হয়
+              Service + Spare Parts + Engine Oil + Extra = Total Bill
             </p>
           </div>
 
@@ -361,7 +358,7 @@ export default function DailySheetPage() {
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-sm transition-all"
           >
             <Plus className="w-4 h-4" />
-            <span>নতুন সার্ভিস যোগ করুন (+ New Service)</span>
+            <span>Add New Service</span>
           </button>
         </div>
 
@@ -371,29 +368,29 @@ export default function DailySheetPage() {
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100/70 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 text-xs uppercase font-semibold">
                 <th className="py-3 px-4">#</th>
-                <th className="py-3 px-4">গ্রাহক ও বাইক</th>
-                <th className="py-3 px-4 text-right">সার্ভিস (Service)</th>
-                <th className="py-3 px-4 text-right">পার্টস (Parts)</th>
-                <th className="py-3 px-4 text-right">ইঞ্জিন অয়েল (Oil)</th>
-                <th className="py-3 px-4 text-right">এক্সট্রা (Extra)</th>
+                <th className="py-3 px-4">Customer & Bike</th>
+                <th className="py-3 px-4 text-right">Service</th>
+                <th className="py-3 px-4 text-right">Parts</th>
+                <th className="py-3 px-4 text-right">Engine Oil</th>
+                <th className="py-3 px-4 text-right">Extra</th>
                 <th className="py-3 px-4 text-right font-bold text-emerald-600 dark:text-emerald-400">
-                  মোট আয় (Total)
+                  Total Income
                 </th>
-                <th className="py-3 px-4 text-center">অবস্থা</th>
-                <th className="py-3 px-4 text-center">মুছুন</th>
+                <th className="py-3 px-4 text-center">Status</th>
+                <th className="py-3 px-4 text-center">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {loading ? (
                 <tr>
                   <td colSpan={9} className="py-12 text-center text-slate-400">
-                    লোড হচ্ছে...
+                    Loading records...
                   </td>
                 </tr>
               ) : services.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="py-12 text-center text-slate-400">
-                    আজকের জন্য কোনো সার্ভিস রেকর্ড যোগ করা হয়নি। "+ নতুন সার্ভিস যোগ করুন" এ ক্লিক করুন।
+                    No services recorded for this date. Click "+ Add New Service" to record one.
                   </td>
                 </tr>
               ) : (
@@ -440,17 +437,17 @@ export default function DailySheetPage() {
                         }`}
                       >
                         {item.paymentStatus === "PAID"
-                          ? "পরিশোধিত"
+                          ? "Paid"
                           : item.paymentStatus === "PARTIAL"
-                          ? "আংশিক বাকি"
-                          : "বাকি (Due)"}
+                          ? "Partial Due"
+                          : "Full Due"}
                       </span>
                     </td>
                     <td className="py-3 px-4 text-center">
                       <button
                         onClick={() => handleDeleteService(item.id)}
                         className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
-                        title="Delete"
+                        title="Delete record"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -463,7 +460,7 @@ export default function DailySheetPage() {
               <tfoot>
                 <tr className="bg-slate-100 dark:bg-slate-800/80 font-bold border-t border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
                   <td colSpan={2} className="py-3 px-4">
-                    মোট যোগফল (Daily Totals):
+                    Daily Totals:
                   </td>
                   <td className="py-3 px-4 text-right">
                     {formatCurrency(totalServiceCharge)}
@@ -494,13 +491,13 @@ export default function DailySheetPage() {
           <div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <Receipt className="w-5 h-5 text-rose-600" />
-              <span>দৈনিক খরচ তালিকা (Daily Dynamic Expenses)</span>
+              <span>Dynamic Daily Expenses</span>
               <span className="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-xs font-semibold">
                 {expenses.length}
               </span>
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              যেকোনো খরচ বিবরণসহ যোগ করুন (দোকান ভাড়া, পার্টস ক্রয়, বিদ্যুৎ বিল, নাস্তা ইত্যাদি)
+              Record any workshop expense with customized description (Rent, Electricity, Supplies, Snacks, etc.)
             </p>
           </div>
 
@@ -509,7 +506,7 @@ export default function DailySheetPage() {
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-sm shadow-sm transition-all"
           >
             <Plus className="w-4 h-4" />
-            <span>নতুন খরচ যোগ করুন (+ Add Expense)</span>
+            <span>Add Expense</span>
           </button>
         </div>
 
@@ -519,25 +516,25 @@ export default function DailySheetPage() {
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100/70 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 text-xs uppercase font-semibold">
                 <th className="py-3 px-4">#</th>
-                <th className="py-3 px-4">খরচের বিবরণ (Description)</th>
-                <th className="py-3 px-4">ক্যাটাগরি</th>
+                <th className="py-3 px-4">Expense Description</th>
+                <th className="py-3 px-4">Category</th>
                 <th className="py-3 px-4 text-right font-bold text-rose-600 dark:text-rose-400">
-                  টাকার পরিমাণ (Amount)
+                  Amount
                 </th>
-                <th className="py-3 px-4 text-center">মুছুন</th>
+                <th className="py-3 px-4 text-center">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {loading ? (
                 <tr>
                   <td colSpan={5} className="py-8 text-center text-slate-400">
-                    লোড হচ্ছে...
+                    Loading expenses...
                   </td>
                 </tr>
               ) : expenses.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-8 text-center text-slate-400">
-                    আজকের জন্য কোনো খরচ রেকর্ড করা হয়নি।
+                    No expenses recorded for this date.
                   </td>
                 </tr>
               ) : (
@@ -564,7 +561,7 @@ export default function DailySheetPage() {
                       <button
                         onClick={() => handleDeleteExpense(exp.id)}
                         className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
-                        title="Delete"
+                        title="Delete expense"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -577,7 +574,7 @@ export default function DailySheetPage() {
               <tfoot>
                 <tr className="bg-slate-100 dark:bg-slate-800/80 font-bold border-t border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100">
                   <td colSpan={3} className="py-3 px-4">
-                    মোট খরচ (Total Expenses):
+                    Total Expenses:
                   </td>
                   <td className="py-3 px-4 text-right text-rose-600 dark:text-rose-400 text-base">
                     {formatCurrency(totalExpense)}
@@ -597,7 +594,7 @@ export default function DailySheetPage() {
             <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Wrench className="w-5 h-5 text-emerald-600" />
-                <span>নতুন সার্ভিস ও সেলস এন্ট্রি</span>
+                <span>New Service & Sales Entry</span>
               </h3>
               <button
                 onClick={() => setIsServiceModalOpen(false)}
@@ -612,12 +609,12 @@ export default function DailySheetPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    গ্রাহকের নাম (Customer Name)
+                    Customer Name
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g., Rahim Mia"
+                    placeholder="e.g., John Doe"
                     value={serviceForm.customerName}
                     onChange={(e) =>
                       setServiceForm({ ...serviceForm, customerName: e.target.value })
@@ -627,11 +624,11 @@ export default function DailySheetPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    মোবাইল নম্বর (Phone)
+                    Phone Number
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g., 01711223344"
+                    placeholder="e.g., +1 234 567 890"
                     value={serviceForm.customerPhone}
                     onChange={(e) =>
                       setServiceForm({ ...serviceForm, customerPhone: e.target.value })
@@ -645,12 +642,12 @@ export default function DailySheetPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    বাইকের মডেল (Bike Model)
+                    Bike Model
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="e.g., Pulsar 150 / FZS V3"
+                    placeholder="e.g., Pulsar 150 / Yamaha FZS"
                     value={serviceForm.bikeModel}
                     onChange={(e) =>
                       setServiceForm({ ...serviceForm, bikeModel: e.target.value })
@@ -660,11 +657,11 @@ export default function DailySheetPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    রেজিস্ট্রেশন নম্বর (Reg No. Optional)
+                    Registration No (Optional)
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g., Dhaka Metro-Ha-11-2233"
+                    placeholder="e.g., REG-1234"
                     value={serviceForm.bikeReg}
                     onChange={(e) =>
                       setServiceForm({ ...serviceForm, bikeReg: e.target.value })
@@ -677,12 +674,12 @@ export default function DailySheetPage() {
               {/* 4 Core Income Fields */}
               <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block">
-                  হিসাবের খাতসমূহ (Income Breakdown)
+                  Income Breakdown
                 </span>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                      সার্ভিস বিল (৳)
+                      Service Charge (৳)
                     </label>
                     <input
                       type="number"
@@ -696,7 +693,7 @@ export default function DailySheetPage() {
                   </div>
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                      স্পেয়ার পার্টস (৳)
+                      Spare Parts (৳)
                     </label>
                     <input
                       type="number"
@@ -710,7 +707,7 @@ export default function DailySheetPage() {
                   </div>
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                      ইঞ্জিন অয়েল (৳)
+                      Engine Oil (৳)
                     </label>
                     <input
                       type="number"
@@ -724,7 +721,7 @@ export default function DailySheetPage() {
                   </div>
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                      এক্সট্রা খরচ (৳)
+                      Extra Charge (৳)
                     </label>
                     <input
                       type="number"
@@ -739,7 +736,7 @@ export default function DailySheetPage() {
                 </div>
 
                 <div className="text-right pt-2 border-t border-slate-200 dark:border-slate-700 font-bold text-sm text-slate-800 dark:text-slate-200">
-                  সর্বমোট বিল (Total):{" "}
+                  Total Bill:{" "}
                   <span className="text-emerald-600 dark:text-emerald-400 text-base">
                     {formatCurrency(
                       Number(serviceForm.serviceCharge || 0) +
@@ -755,7 +752,7 @@ export default function DailySheetPage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    পেমেন্ট স্ট্যাটাস
+                    Payment Status
                   </label>
                   <select
                     value={serviceForm.paymentStatus}
@@ -764,15 +761,15 @@ export default function DailySheetPage() {
                     }
                     className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                   >
-                    <option value="PAID">সম্পূর্ণ পেইড (Paid)</option>
-                    <option value="PARTIAL">আংশিক বাকি (Partial)</option>
-                    <option value="DUE">সম্পূর্ণ বাকি (Full Due)</option>
+                    <option value="PAID">Full Paid</option>
+                    <option value="PARTIAL">Partial Due</option>
+                    <option value="DUE">Full Due</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    পেমেন্ট মাধ্যম
+                    Payment Method
                   </label>
                   <select
                     value={serviceForm.paymentMethod}
@@ -781,21 +778,21 @@ export default function DailySheetPage() {
                     }
                     className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                   >
-                    <option value="CASH">ক্যাশ (Cash)</option>
-                    <option value="BKASH">বিকাশ (bKash)</option>
-                    <option value="NAGAD">নগদ (Nagad)</option>
-                    <option value="DUE">বাকি (Due)</option>
+                    <option value="CASH">Cash</option>
+                    <option value="BKASH">bKash</option>
+                    <option value="NAGAD">Nagad</option>
+                    <option value="DUE">Due</option>
                   </select>
                 </div>
 
                 {serviceForm.paymentStatus === "PARTIAL" && (
                   <div>
                     <label className="block text-xs font-semibold text-amber-600 dark:text-amber-400 mb-1">
-                      কত টাকা পেইড করেছে? (৳)
+                      Upfront Paid Amount (৳)
                     </label>
                     <input
                       type="number"
-                      placeholder="কত দিলো"
+                      placeholder="Amount paid"
                       value={serviceForm.amountPaid}
                       onChange={(e) =>
                         setServiceForm({ ...serviceForm, amountPaid: e.target.value })
@@ -809,11 +806,11 @@ export default function DailySheetPage() {
               {/* Notes */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  নোট / কাজের বিবরণ (Notes)
+                  Service Notes / Work Description
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g., ইঞ্জিন টিউনিং ও অয়েল ফিল্টার চেঞ্জ"
+                  placeholder="e.g., Engine tuning and brake shoe replacement"
                   value={serviceForm.notes}
                   onChange={(e) =>
                     setServiceForm({ ...serviceForm, notes: e.target.value })
@@ -829,13 +826,13 @@ export default function DailySheetPage() {
                   onClick={() => setIsServiceModalOpen(false)}
                   className="px-4 py-2 text-sm font-semibold rounded-xl border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                 >
-                  বাতিল (Cancel)
+                  Cancel
                 </button>
                 <button
                   type="submit"
                   className="px-5 py-2 text-sm font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
                 >
-                  সংরক্ষণ করুন (Save Entry)
+                  Save Service Record
                 </button>
               </div>
             </form>
@@ -850,7 +847,7 @@ export default function DailySheetPage() {
             <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Receipt className="w-5 h-5 text-rose-600" />
-                <span>নতুন দৈনিক খরচ এন্ট্রি (Add Expense)</span>
+                <span>Add Daily Expense</span>
               </h3>
               <button
                 onClick={() => setIsExpenseModalOpen(false)}
@@ -863,12 +860,12 @@ export default function DailySheetPage() {
             <form onSubmit={handleCreateExpense} className="mt-4 space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  খরচের বিবরণ (Description)
+                  Expense Description
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g., দোকান ভাড়া, মোবিলে খরচ, বিদ্যুৎ বিল"
+                  placeholder="e.g., Shop Rent, Engine Oil Stock, Electricity"
                   value={expenseForm.description}
                   onChange={(e) =>
                     setExpenseForm({ ...expenseForm, description: e.target.value })
@@ -879,7 +876,7 @@ export default function DailySheetPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  টাকার পরিমাণ (Amount ৳)
+                  Amount (৳)
                 </label>
                 <input
                   type="number"
@@ -895,7 +892,7 @@ export default function DailySheetPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  খরচের ক্যাটাগরি (Category)
+                  Expense Category
                 </label>
                 <select
                   value={expenseForm.category}
@@ -904,12 +901,12 @@ export default function DailySheetPage() {
                   }
                   className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                 >
-                  <option value="MISC">অন্যান্য / চা-নাস্তা (Misc / Snacks)</option>
-                  <option value="PURCHASE">পার্টস বা মালামাল ক্রয় (Purchase)</option>
-                  <option value="RENT">দোকান ভাড়া (Rent)</option>
-                  <option value="UTILITIES">বিদ্যুৎ / পানি বিল (Utilities)</option>
-                  <option value="SALARY">মেকানিক বেতন / মজুরি (Salary)</option>
-                  <option value="TRANSPORT">যাতায়াত খরচ (Transport)</option>
+                  <option value="MISC">Miscellaneous / Snacks</option>
+                  <option value="PURCHASE">Parts & Stock Purchase</option>
+                  <option value="RENT">Shop Rent</option>
+                  <option value="UTILITIES">Electricity & Utilities</option>
+                  <option value="SALARY">Mechanic Wages / Salary</option>
+                  <option value="TRANSPORT">Transport & Delivery</option>
                 </select>
               </div>
 
@@ -920,13 +917,13 @@ export default function DailySheetPage() {
                   onClick={() => setIsExpenseModalOpen(false)}
                   className="px-4 py-2 text-sm font-semibold rounded-xl border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                 >
-                  বাতিল
+                  Cancel
                 </button>
                 <button
                   type="submit"
                   className="px-5 py-2 text-sm font-semibold rounded-xl bg-rose-600 hover:bg-rose-700 text-white shadow-sm"
                 >
-                  খরচ সংরক্ষণ করুন
+                  Save Expense
                 </button>
               </div>
             </form>

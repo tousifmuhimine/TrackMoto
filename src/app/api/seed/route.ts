@@ -5,34 +5,34 @@ export async function POST() {
   try {
     // 1. Create or get Customers
     const customer1 = await prisma.customer.upsert({
-      where: { phone: "01711223344" },
+      where: { phone: "+1 234 567 8901" },
       update: {},
       create: {
-        name: "Rahim Mia",
-        phone: "01711223344",
-        address: "Mirpur 10, Dhaka",
+        name: "David Miller",
+        phone: "+1 234 567 8901",
+        address: "Downtown, 5th Avenue",
         tag: "REGULAR",
       },
     });
 
     const customer2 = await prisma.customer.upsert({
-      where: { phone: "01822334455" },
+      where: { phone: "+1 234 567 8902" },
       update: {},
       create: {
-        name: "Karim Uddin",
-        phone: "01822334455",
-        address: "Pallabi, Dhaka",
+        name: "Robert Evans",
+        phone: "+1 234 567 8902",
+        address: "Westside Industrial Area",
         tag: "VIP",
       },
     });
 
     const customer3 = await prisma.customer.upsert({
-      where: { phone: "01933445566" },
+      where: { phone: "+1 234 567 8903" },
       update: {},
       create: {
-        name: "Tanvir Ahmed",
-        phone: "01933445566",
-        address: "Kazipara, Dhaka",
+        name: "Alex Morgan",
+        phone: "+1 234 567 8903",
+        address: "North Boulevard",
         tag: "NEW",
       },
     });
@@ -44,7 +44,7 @@ export async function POST() {
         data: {
           customerId: customer1.id,
           model: "Bajaj Pulsar 150",
-          registrationNo: "Dhaka Metro-Ha-14-1122",
+          registrationNo: "REG-1044",
           color: "Black-Red",
         },
       });
@@ -56,7 +56,7 @@ export async function POST() {
         data: {
           customerId: customer2.id,
           model: "Yamaha FZS V3",
-          registrationNo: "Dhaka Metro-La-21-4455",
+          registrationNo: "REG-2088",
           color: "Matte Blue",
         },
       });
@@ -77,7 +77,7 @@ export async function POST() {
         paymentStatus: "PAID",
         paymentMethod: "CASH",
         amountPaid: 2450,
-        notes: "Full servicing + Motul 10W-40 + Brake Shoe change",
+        notes: "Full servicing, Motul 10W-40, brake shoe replacement",
       },
     });
 
@@ -94,7 +94,7 @@ export async function POST() {
         paymentStatus: "PARTIAL",
         paymentMethod: "BKASH",
         amountPaid: 3000,
-        notes: "Engine tuning + Clutch plates + Mobil 1 oil",
+        notes: "Engine tuning, clutch plates replacement, Mobil 1 synthetic",
       },
     });
 
@@ -112,7 +112,7 @@ export async function POST() {
         remainingAmount: 2850,
         dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
         status: "PARTIAL",
-        notes: "Remaining ৳2850 to be paid next week",
+        notes: "Remaining ৳2,850 to be paid on next visit",
       },
     });
 
@@ -122,7 +122,7 @@ export async function POST() {
         amount: 3000,
         method: "BKASH",
         date: today,
-        note: "Initial payment via bKash at time of delivery",
+        note: "Initial upfront payment at bike pickup",
       },
     });
 
@@ -131,19 +131,19 @@ export async function POST() {
       data: [
         {
           date: today,
-          description: "দোকানের বিদ্যুৎ বিল (Electricity Bill)",
+          description: "Workshop Monthly Electricity Bill",
           amount: 1200,
           category: "UTILITIES",
         },
         {
           date: today,
-          description: "ইঞ্জিন অয়েল পাইকারি ক্রয় (Wholesale Mobil Box)",
+          description: "Wholesale Engine Oil Restock Box (Motul & Castrol)",
           amount: 4500,
           category: "PURCHASE",
         },
         {
           date: today,
-          description: "মেকানিক ও কাস্টমারদের চা-নাস্তা (Snacks & Tea)",
+          description: "Staff & Customer Refreshments",
           amount: 250,
           category: "MISC",
         },
@@ -153,10 +153,10 @@ export async function POST() {
     // 5. Bidirectional Dues (We owe & They owe)
     const party = await prisma.dueParty.create({
       data: {
-        name: "Rahman Auto Parts (রহমান অটো পার্টস)",
-        phone: "01755667788",
+        name: "Rahman Auto Parts Wholesale",
+        phone: "+1 234 567 8999",
         type: "SUPPLIER",
-        address: "Banglamotor, Dhaka",
+        address: "Commercial Market Road",
       },
     });
 
@@ -164,8 +164,8 @@ export async function POST() {
     await prisma.dueEntry.create({
       data: {
         partyId: party.id,
-        direction: "PAYABLE", // আমরা দেবো
-        reason: "১ কার্টুন ব্রেক শু ও চেইন স্প্রোকেট বাকিতে ক্রয়",
+        direction: "PAYABLE",
+        reason: "Carton of brake pads and chain sprockets on credit",
         totalAmount: 15000,
         paidAmount: 5000,
         remainingAmount: 10000,
@@ -178,8 +178,8 @@ export async function POST() {
     await prisma.dueEntry.create({
       data: {
         partyId: party.id,
-        direction: "RECEIVABLE", // আমরা পাবো
-        reason: "ডেলিভারি বাইকের ইঞ্জিন কাজ ও পেইন্টিং বিল",
+        direction: "RECEIVABLE",
+        reason: "Engine overhaul and body painting for delivery motorcycle",
         totalAmount: 3500,
         paidAmount: 0,
         remainingAmount: 3500,
@@ -195,7 +195,7 @@ export async function POST() {
       create: {
         id: "default",
         workshopName: "TrackMoto Bike Workshop",
-        address: "Plot 12, Mirpur 10, Dhaka - 1216",
+        address: "Plot 12, Main Road, Dhaka - 1216",
         phone: "+880 1711-223344",
         currency: "৳",
       },
@@ -203,7 +203,7 @@ export async function POST() {
 
     return NextResponse.json({
       success: true,
-      message: "Sample data seeded successfully!",
+      message: "English sample data seeded successfully!",
     });
   } catch (error: any) {
     console.error("Seeding error:", error);

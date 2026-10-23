@@ -13,66 +13,65 @@ import {
   FileSpreadsheet,
   Settings,
   Scale,
-  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navigation = [
   {
     name: "Dashboard",
-    nameBn: "ড্যাশবোর্ড",
+    description: "Overview & Analytics",
     href: "/",
     icon: LayoutDashboard,
   },
   {
     name: "Daily Sheet",
-    nameBn: "দৈনিক হিসাব",
+    description: "Daily Service & Expense",
     href: "/daily",
     icon: CalendarCheck2,
     badge: "Core",
   },
   {
     name: "Monthly Summary",
-    nameBn: "মাসিক হিসাব",
+    description: "Income, Expense & Profit",
     href: "/monthly",
     icon: BarChart3,
     badge: "Core",
   },
   {
     name: "Customer Dues",
-    nameBn: "কাস্টমার বাকি",
+    description: "Due Tracking & Installments",
     href: "/dues/customers",
     icon: CreditCard,
     badge: "Core",
   },
   {
-    name: "All Dues (বাকি-পাওনা)",
-    nameBn: "লেনদেন হিসাব",
+    name: "Due Ledger",
+    description: "We Owe & They Owe",
     href: "/dues",
     icon: Scale,
     badge: "2-Way",
   },
   {
     name: "Customers",
-    nameBn: "গ্রাহক তালিকা",
+    description: "Directory & History",
     href: "/customers",
     icon: Users2,
   },
   {
     name: "Inventory",
-    nameBn: "স্পেয়ার পার্টস স্টক",
+    description: "Spare Parts & Stock",
     href: "/inventory",
     icon: Package,
   },
   {
     name: "Invoices",
-    nameBn: "রসিদ ও বিল",
+    description: "Printable Cash Memos",
     href: "/invoices",
     icon: FileSpreadsheet,
   },
   {
     name: "Settings",
-    nameBn: "সেটিংস",
+    description: "Workshop Profile",
     href: "/settings",
     icon: Settings,
   },
@@ -97,7 +96,7 @@ export function Sidebar() {
               Pro
             </span>
           </div>
-          <p className="text-xs text-slate-400 font-medium">বাইক ওয়ার্কশপ ম্যানেজার</p>
+          <p className="text-xs text-slate-400 font-medium">Workshop Management</p>
         </div>
       </div>
 
@@ -135,7 +134,7 @@ export function Sidebar() {
                 <div className="flex flex-col">
                   <span>{item.name}</span>
                   <span className="text-[11px] text-slate-400 font-normal">
-                    {item.nameBn}
+                    {item.description}
                   </span>
                 </div>
               </div>
@@ -165,11 +164,11 @@ export function Sidebar() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold text-slate-200 truncate">
-              মেসার্স বাইক সার্ভিস সেন্টার
+              TrackMoto Service Hub
             </p>
             <p className="text-[11px] text-emerald-400 flex items-center gap-1 font-medium">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              Online / Neon Connected
+              System Active / Online
             </p>
           </div>
         </div>

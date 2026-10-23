@@ -5,14 +5,10 @@ import Link from "next/link";
 import {
   TrendingUp,
   TrendingDown,
-  DollarSign,
   CreditCard,
   CalendarCheck2,
   BarChart3,
-  Scale,
-  Plus,
   ArrowRight,
-  Clock,
   Wrench,
   Receipt,
   Sparkles,
@@ -25,7 +21,6 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  Legend,
   CartesianGrid,
 } from "recharts";
 import { toast } from "sonner";
@@ -42,7 +37,7 @@ export default function DashboardPage() {
       setData(json);
     } catch (e: any) {
       console.error(e);
-      toast.error("ড্যাশবোর্ড ডাটা লোড করতে সমস্যা হয়েছে");
+      toast.error("Failed to load dashboard metrics");
     } finally {
       setLoading(false);
     }
@@ -59,13 +54,13 @@ export default function DashboardPage() {
         <div className="relative z-10 max-w-2xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-semibold mb-3 border border-emerald-500/30">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>TrackMoto ওয়ার্কশপ ম্যানেজমেন্ট সিস্টেম</span>
+            <span>TrackMoto Workshop Management System</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
-            স্বাগতম! আজকের ওয়ার্কশপ কার্যক্রমের সারসংক্ষেপ
+            Welcome! Today's Workshop Overview
           </h1>
           <p className="text-slate-300 text-sm mt-2 leading-relaxed">
-            দৈনিক সার্ভিস ও বিক্রয় রেকর্ড করুন, ডায়নামিক খরচ সমন্বয় করুন, মাসিক প্রফিট মনিটর করুন এবং কাস্টমার ও সাপ্লায়ারের বাকি কিস্তি হিসাব রাখুন।
+            Record daily services and sales, deduct dynamic expenses, monitor monthly profit/loss, and track customer and supplier dues.
           </p>
 
           <div className="flex flex-wrap gap-3 mt-5">
@@ -74,7 +69,7 @@ export default function DashboardPage() {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 transition-all"
             >
               <CalendarCheck2 className="w-4 h-4" />
-              <span>দৈনিক হিসাব শিট (Daily Sheet)</span>
+              <span>Open Daily Sheet</span>
             </Link>
 
             <Link
@@ -82,7 +77,7 @@ export default function DashboardPage() {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-white font-semibold text-xs border border-slate-700 transition-all"
             >
               <CreditCard className="w-4 h-4 text-emerald-400" />
-              <span>কাস্টমার বাকি ও কিস্তি খাতা</span>
+              <span>Customer Due Ledger</span>
             </Link>
           </div>
         </div>
@@ -97,7 +92,7 @@ export default function DashboardPage() {
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              আজকের মোট আয়
+              Today's Income
             </span>
             <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
               <TrendingUp className="w-4 h-4" />
@@ -107,7 +102,7 @@ export default function DashboardPage() {
             {formatCurrency(data?.today?.income || 0)}
           </div>
           <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            সার্ভিস + পার্টস + অয়েল + এক্সট্রা
+            Service + Parts + Oil + Extra
           </div>
         </div>
 
@@ -115,7 +110,7 @@ export default function DashboardPage() {
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              আজকের মোট খরচ
+              Today's Expenses
             </span>
             <div className="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center">
               <TrendingDown className="w-4 h-4" />
@@ -125,7 +120,7 @@ export default function DashboardPage() {
             {formatCurrency(data?.today?.expense || 0)}
           </div>
           <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            দোকান ও মালামালের বিভিন্ন খরচ
+            Total dynamic expenses
           </div>
         </div>
 
@@ -133,7 +128,7 @@ export default function DashboardPage() {
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              আজকের নিট অবশিষ্ট
+              Today's Net Profit
             </span>
             <span
               className={`px-2 py-0.5 text-[10px] font-bold rounded-md ${
@@ -142,7 +137,7 @@ export default function DashboardPage() {
                   : "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300"
               }`}
             >
-              {(data?.today?.net || 0) >= 0 ? "লাভ" : "ঘাটতি"}
+              {(data?.today?.net || 0) >= 0 ? "PROFIT" : "LOSS"}
             </span>
           </div>
           <div
@@ -155,7 +150,7 @@ export default function DashboardPage() {
             {formatCurrency(data?.today?.net || 0)}
           </div>
           <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            আয় হতে খরচ বাদ দিয়ে
+            Income minus Expenses
           </div>
         </div>
 
@@ -163,7 +158,7 @@ export default function DashboardPage() {
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              কাস্টমার বাকি পাওনা
+              Customer Dues
             </span>
             <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
               <CreditCard className="w-4 h-4" />
@@ -173,7 +168,7 @@ export default function DashboardPage() {
             {formatCurrency(data?.dues?.total || 0)}
           </div>
           <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            মোট {data?.dues?.count || 0} টি বাকি বাকি একাউন্ট
+            Total {data?.dues?.count || 0} active accounts
           </div>
         </div>
       </div>
@@ -184,21 +179,21 @@ export default function DashboardPage() {
           <div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-emerald-600" />
-              <span>বিগত ৭ দিনের আয় বনাম ব্যয় ট্রেন্ড (Last 7 Days Trend)</span>
+              <span>Income vs Expenses Trend (Last 7 Days)</span>
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              দৈনিক ইনকাম ও খরচের গ্রাফিক্যাল তুলনা
+              Daily income and expenses bar comparison
             </p>
           </div>
 
           <div className="flex items-center gap-4 text-xs font-semibold">
             <div className="flex items-center gap-1.5">
               <span className="w-3 h-3 rounded-xs bg-emerald-500"></span>
-              <span>আয় (Income)</span>
+              <span>Income</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-3 h-3 rounded-xs bg-rose-500"></span>
-              <span>খরচ (Expense)</span>
+              <span>Expense</span>
             </div>
           </div>
         </div>
@@ -220,13 +215,13 @@ export default function DashboardPage() {
                     fontSize: "12px",
                   }}
                 />
-                <Bar dataKey="income" name="আয় (Income)" fill="#10b981" radius={[6, 6, 0, 0]} />
-                <Bar dataKey="expense" name="খরচ (Expense)" fill="#f43f5e" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="income" name="Income" fill="#10b981" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="expense" name="Expense" fill="#f43f5e" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
             <div className="h-full flex items-center justify-center text-slate-400 text-sm">
-              ডাটা লোড হচ্ছে...
+              Loading trend data...
             </div>
           )}
         </div>
@@ -239,13 +234,13 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
             <h3 className="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
               <Wrench className="w-4 h-4 text-emerald-600" />
-              <span>সাম্প্রতিক সার্ভিসসমূহ (Recent Services)</span>
+              <span>Recent Services</span>
             </h3>
             <Link
               href="/daily"
               className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
             >
-              <span>সব দেখুন</span>
+              <span>View all</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -253,7 +248,7 @@ export default function DashboardPage() {
           <div className="divide-y divide-slate-100 dark:divide-slate-800 mt-2">
             {!data?.recentServices || data.recentServices.length === 0 ? (
               <p className="text-xs text-slate-400 py-6 text-center">
-                কোনো সার্ভিস রেকর্ড নেই।
+                No recent services recorded.
               </p>
             ) : (
               data.recentServices.map((s: any) => (
@@ -283,13 +278,13 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
             <h3 className="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
               <Receipt className="w-4 h-4 text-rose-600" />
-              <span>সাম্প্রতিক খরচসমূহ (Recent Expenses)</span>
+              <span>Recent Expenses</span>
             </h3>
             <Link
               href="/daily"
               className="text-xs font-semibold text-rose-600 hover:text-rose-700 flex items-center gap-1"
             >
-              <span>সব দেখুন</span>
+              <span>View all</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -297,7 +292,7 @@ export default function DashboardPage() {
           <div className="divide-y divide-slate-100 dark:divide-slate-800 mt-2">
             {!data?.recentExpenses || data.recentExpenses.length === 0 ? (
               <p className="text-xs text-slate-400 py-6 text-center">
-                কোনো খরচ রেকর্ড নেই।
+                No recent expenses recorded.
               </p>
             ) : (
               data.recentExpenses.map((e: any) => (

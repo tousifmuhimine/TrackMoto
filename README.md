@@ -1,42 +1,43 @@
 # 🏍️ TrackMoto — Bike Workshop Management System
-> **প্রিমিয়াম বাইক ওয়ার্কশপ ম্যানেজমেন্ট সফটওয়্যার**  
-> দৈনিক হিসাব শিট (Daily Sheet), ডায়নামিক খরচ (Dynamic Expenses), মাসিক প্রফিট সামারি (Monthly Summary), কাস্টমার কিস্তি বাকি ও দ্বিমুখী লেনদেন খাতা (Bidirectional Due & Installments).
+> **Premium Bike Workshop Management & Financial Accounting Platform**  
+> Daily Service & Dynamic Expense Tracking, Monthly Profit/Loss Summaries, Customer Installment Due Ledger, and Bidirectional Supplier/Vendor Accounting.
 
 ---
 
-## 🌟 প্রধান ফিচারসমূহ (Key Features)
+## 🌟 Key Features
 
-### 1. 📅 দৈনিক হিসাব শিট (Daily Service & Expense Sheet)
-- **সার্ভিস ও সেলস এন্ট্রি:** তারিখ, গ্রাহকের নাম, মোবাইল, বাইক মডেল, রেজি নং, সার্ভিসিং মজুরি (Service Charge), স্পেয়ার পার্টস (Spare Parts), ইঞ্জিন অয়েল (Engine Oil), অতিরিক্ত ফি (Extra) যোগ হয়ে স্বয়ংক্রিয়ভাবে মোট বিল হিসাব।
-- **ডায়নামিক খরচ (Multiple Dynamic Expenses):** দোকান ভাড়া, বিদ্যুৎ বিল, কর্মচারীর মজুরি, মালামাল ক্রয় বা নাস্তা—প্রতিটি খরচ বিবরণ ও ক্যাটাগরিসহ আনলিমিটেড এন্ট্রি।
-- **দৈনিক নিট হিসাব:** `মোট আয় - মোট খরচ = আজকের নিট প্রফিট / ব্যালেন্স`।
-- তারিখ পরিবর্তন ও ক্যালেন্ডার নেভিগেশন।
+### 1. 📅 Daily Service & Expense Sheet (`/daily`)
+- **Income Entry:** Customer Name, Phone, Bike Model, Registration No, Service Labour Charge, Spare Parts, Engine Oil, and Extra Charges — automatically summed into Total Bill.
+- **Dynamic Expenses:** Add multiple separate expense items per day (Rent, Utilities, Parts Purchase, Staff Refreshments, etc.) with custom descriptions and categories.
+- **Daily Net Total:** Real-time calculation: `Total Daily Income - Total Daily Expenses = Net Daily Profit / Balance`.
+- **Date Navigation:** Instant date switcher to browse and log records for any date.
 
-### 2. 📊 মাসিক প্রফিট ও ক্ষতি বিবরণী (Monthly Summary Report)
-- জানুয়ারি থেকে ডিসেম্বর প্রতি মাসের মোট ইনকাম, মোট ব্যয় এবং নিট অবশিষ্ট স্বয়ংক্রিয়ভাবে হিসাব।
-- বাৎসরিক গ্রস ইনকাম, টোটাল এক্সপেন্স ও নিট লাভের ওভারভিউ কার্ড।
-- এক ক্লিকে **Excel Sheet (.xlsx)** ডাউনলোড ও এক্সপোর্ট সুবিধা।
+### 2. 📊 Monthly Summary & Profit Report (`/monthly`)
+- Comprehensive overview across all 12 months (January to December).
+- Automatic calculation of gross income, total expenses, and resulting net profit or loss.
+- High-level annual overview cards.
+- **One-click Excel Export:** Download complete monthly accounting reports into `.xlsx`.
 
-### 3. 💳 কাস্টমার বাকি ও কিস্তি খাতা (Customer Dues & Installments)
-- সার্ভিস বিলের সময় আংশিক বা ফুল বাকি থাকলে স্বয়ংক্রিয়ভাবে কাস্টমার বাকি খাতায় রেকর্ড তৈরি এবং **মূল বিক্রয়/সার্ভিসের সাথে লিংক স্থাপন**।
-- **কিস্তি পরিশোধ ট্র্যাকিং (Installments with Dates):** গ্রাহক কবে কত টাকা (নগদ, বিকাশ, নগদ) পরিশোধ করেছে তার বিস্তারিত তারিখসহ হিস্টোরি।
-- অবশিষ্ট বাকি শূন্য হলে স্বয়ংক্রিয়ভাবে **"পরিশোধিত (CLEARED)"** স্ট্যাটাস আপডেট।
-- পরিশোধের মেয়াদ উত্তীর্ণ (Overdue) হলে লাল সতর্কবার্তা।
+### 3. 💳 Customer Dues & Installment Ledger (`/dues/customers`)
+- **Direct Linkage to Sales:** Automatically generated whenever a service is marked as "Due" or "Partial", linking directly to the original service record (`serviceId`).
+- **Installment Payment History:** Log date-wise installment payments (Cash, bKash, Nagad) with balance tracking.
+- **Auto-Clearing:** Automatically flips to `CLEARED` status when the remaining balance reaches zero.
+- **Overdue Alerts:** Visual badges for dues exceeding their deadline.
 
-### 4. ⚖️ দ্বিমুখী বাকি ও পাওনা খাতা (Bidirectional Due Ledger)
-- **আমরা দেবো (We Owe Them):** পার্টস সাপ্লায়ার, দোকান মালিকের বাকি পাওনা।
-- **আমরা পাবো (They Owe Us):** যাদের কাছে আমাদের পাওনা।
-- একই কোম্পানি বা ব্যক্তির উভয় লেনদেনের বিপরীতে **সমন্বিত নিট ব্যালেন্স (Net Position)** প্রদর্শনী।
+### 4. ⚖️ Bidirectional Due & Pay Ledger (`/dues`)
+- **We Owe (Payable):** Track money the workshop owes to suppliers and vendors with payment logs.
+- **They Owe Us (Receivable):** Track money owed to the workshop by corporate clients and partners.
+- **Party Net Balance:** Automatically calculates net balance for entities appearing on both sides.
 
-### 5. 📦 অতিরিক্ত সুবিধাসমূহ
-- **গ্রাহক ডেটাবেজ (Customer CRM):** গ্রাহকের বাইকের তালিকা, লাইফটাইম খরচের পরিমাণ ও বাকি তথ্য।
-- **পার্টস ইনভেন্টরি (Stock & Parts):** ইঞ্জিন অয়েল, ব্রেক শু, চেইনের ক্রয়মূল্য, বিক্রয়মূল্য ও লো-স্টক সতর্কবার্তা।
-- **প্রিন্ট-রেডি ক্যাশ মেমো (Printable Invoices):** ওয়ার্কশপ হেডারসহ যেকোনো সার্ভিসের অফিশিয়াল বিল ও মেমো প্রিন্ট।
-- **ডেমো ডাটা সিডার:** এক ক্লিকে বাস্তবসম্মত নমুনা ডাটা লোড ও টেস্টিং সুবিধা।
+### 5. 📦 Additional Modules
+- **Customer Directory & CRM (`/customers`):** History of customer bikes, lifetime spend, and active dues.
+- **Stock & Parts Inventory (`/inventory`):** Stock tracker with buy price, sell price, and low-stock warnings.
+- **Printable Invoices (`/invoices`):** Clean, print-ready cash memos for customers.
+- **One-Click Demo Seeder:** Instantly populate realistic sample data via the header button.
 
 ---
 
-## 🛠️ প্রযুক্তিগত কাঠামো (Tech Stack)
+## 🛠️ Tech Stack
 
 | Layer | Technology |
 |---|---|
@@ -44,66 +45,54 @@
 | **Language** | TypeScript |
 | **Database** | Neon Lakebase Postgres (Serverless) / PostgreSQL 16 |
 | **ORM** | Prisma ORM |
-| **Styling** | Tailwind CSS v3 / shadcn design tokens |
+| **Styling** | Tailwind CSS / Modern card design tokens |
 | **Charts** | Recharts |
 | **Icons** | Lucide React |
 | **Export** | SheetJS (xlsx) |
 | **Container** | Docker & Docker Compose |
-| **Deployment** | Vercel (Production) & Neon Cloud |
+| **Deployment** | Vercel & Neon Cloud |
 
 ---
 
-## 🚀 লোকাল রান করার নিয়ম (Local Development)
+## 🚀 Running Locally
 
-### অপশন ১: সরাসরি Node.js দিয়ে
+### Option 1: Direct Node.js Run
 ```bash
-# ১. ডিপেন্ডেন্সি ইনস্টল
+# 1. Install dependencies
 npm install
 
-# ২. প্রিজমা ক্লায়েন্ট তৈরি
-npx prisma generate
-
-# ৩. লোকাল ডেটাবেজ পুশ
+# 2. Push database schema
 npx prisma db push
 
-# ৪. ডেভেলপমেন্ট সার্ভার চালু
+# 3. Start development server
 npm run dev
 ```
-ব্রাউজারে ভিজিট করুন: `http://localhost:3000`
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-### অপশন ২: Docker দিয়ে
+### Option 2: Run with Docker Compose
 ```bash
-# ডকার কন্টেইনার এবং লোকাল পোস্টগ্রেস চালু
+# Start Next.js and PostgreSQL containers
 docker-compose up -d --build
 ```
-ব্রাউজারে ভিজিট করুন: `http://localhost:3000`
+Open [http://localhost:3000](http://localhost:3000).
 
 ---
 
-## ☁️ Neon ক্লাউড ও Vercel এ ডেপ্লয়মেন্ট
+## ☁️ Deployment Guide
 
-### ১. Neon কনফিগারেশন
-Neon CLI দ্বারা প্রোজেক্ট ইতিমধ্যে লিংক করা আছে:
-- **Project ID:** `bitter-queen-63727945`
-- **Org ID:** `org-wispy-hill-06699806`
-- **Branch:** `production`
-
-ক্লাউডে সার্ভিস প্রোভিশন ও লাইভ এনভায়রনমেন্ট পেতে:
+### 1. Push to GitHub
 ```bash
-neon login
-neon deploy
-```
-*(এটি স্বয়ংক্রিয়ভাবে `.env.local` ফাইলে প্রোডাকশন `DATABASE_URL` যুক্ত করবে)*
-
-### ২. GitHub ও Vercel এ ডেপ্লয়
-```bash
-git init
 git add .
-git commit -m "feat: complete TrackMoto workshop management system"
+git commit -m "feat: complete TrackMoto workshop platform in English"
 git branch -M main
-git remote add origin <YOUR_GITHUB_REPO_URL>
+git remote add origin https://github.com/YOUR_USERNAME/trackmoto.git
 git push -u origin main
 ```
-তারপর [Vercel](https://vercel.com) এ গিয়ে গিটহাব রিপোজিটরিটি ইমপোর্ট করুন এবং Environment Variable হিসেবে `DATABASE_URL` সেট করে Deploy বাটনে ক্লিক করুন।
+
+### 2. Deploy to Vercel
+1. Import your GitHub repository into [Vercel](https://vercel.com).
+2. Set Environment Variable:
+   - `DATABASE_URL`: Your Neon PostgreSQL connection string.
+3. Click **Deploy**.

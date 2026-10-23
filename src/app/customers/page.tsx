@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users2, Plus, Phone, MapPin, Bike, Search, CreditCard } from "lucide-react";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { Users2, Plus, Phone, Bike, Search } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
 
 export default function CustomersPage() {
@@ -47,7 +47,7 @@ export default function CustomersPage() {
       });
       if (!res.ok) throw new Error("Failed to create customer");
 
-      toast.success("গ্রাহক সফলভাবে যোগ হয়েছে");
+      toast.success("Customer added successfully");
       setIsOpen(false);
       setForm({ name: "", phone: "", address: "", tag: "REGULAR", bikeModel: "", bikeReg: "" });
       fetchCustomers();
@@ -68,10 +68,10 @@ export default function CustomersPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
             <Users2 className="w-6 h-6 text-emerald-600" />
-            <span>গ্রাহক ডেটাবেজ ও সিআরএম (Customer Directory)</span>
+            <span>Customer Directory & CRM</span>
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            গ্রাহকের বাইক হিস্টোরি, মোট কেনাকাটা ও বর্তমান বাকি তথ্য।
+            Customer bike history, lifetime service spend, and outstanding balances.
           </p>
         </div>
 
@@ -80,7 +80,7 @@ export default function CustomersPage() {
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="নাম বা মোবাইল..."
+              placeholder="Name or phone..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9 pr-4 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white"
@@ -91,17 +91,17 @@ export default function CustomersPage() {
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-sm"
           >
             <Plus className="w-4 h-4" />
-            <span>নতুন গ্রাহক</span>
+            <span>New Customer</span>
           </button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {loading ? (
-          <div className="col-span-full py-12 text-center text-slate-400">লোড হচ্ছে...</div>
+          <div className="col-span-full py-12 text-center text-slate-400">Loading customers...</div>
         ) : filtered.length === 0 ? (
           <div className="col-span-full py-12 text-center text-slate-400">
-            কোনো গ্রাহক পাওয়া যায়নি।
+            No customers found.
           </div>
         ) : (
           filtered.map((c) => (
@@ -134,13 +134,13 @@ export default function CustomersPage() {
 
               <div className="pt-2 border-t border-slate-100 dark:border-slate-800 grid grid-cols-2 gap-2 text-xs">
                 <div>
-                  <span className="text-slate-400 block">মোট সার্ভিস ব্যয়:</span>
+                  <span className="text-slate-400 block">Lifetime Spend:</span>
                   <span className="font-bold text-emerald-600 text-sm">
                     {formatCurrency(c.totalSpent)}
                   </span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block">বর্তমান বাকি:</span>
+                  <span className="text-slate-400 block">Current Dues:</span>
                   <span
                     className={`font-bold text-sm ${
                       c.pendingDues > 0 ? "text-rose-600" : "text-slate-600"
@@ -159,11 +159,11 @@ export default function CustomersPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white pb-3 border-b border-slate-200 dark:border-slate-800">
-              নতুন গ্রাহক প্রোফাইল
+              New Customer Profile
             </h3>
             <form onSubmit={handleCreate} className="mt-4 space-y-3">
               <div>
-                <label className="block text-xs font-semibold mb-1">নাম</label>
+                <label className="block text-xs font-semibold mb-1">Customer Name</label>
                 <input
                   type="text"
                   required
@@ -173,7 +173,7 @@ export default function CustomersPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold mb-1">মোবাইল</label>
+                <label className="block text-xs font-semibold mb-1">Phone Number</label>
                 <input
                   type="text"
                   required
@@ -183,7 +183,7 @@ export default function CustomersPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold mb-1">ঠিকানা</label>
+                <label className="block text-xs font-semibold mb-1">Address</label>
                 <input
                   type="text"
                   value={form.address}
@@ -193,7 +193,7 @@ export default function CustomersPage() {
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-xs font-semibold mb-1">বাইকের মডেল</label>
+                  <label className="block text-xs font-semibold mb-1">Bike Model</label>
                   <input
                     type="text"
                     placeholder="Pulsar / FZS"
@@ -203,10 +203,10 @@ export default function CustomersPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold mb-1">রেজিস্ট্রেশন নম্বর</label>
+                  <label className="block text-xs font-semibold mb-1">Registration No</label>
                   <input
                     type="text"
-                    placeholder="ঢাকা মেট্রো..."
+                    placeholder="e.g., REG-1234"
                     value={form.bikeReg}
                     onChange={(e) => setForm({ ...form, bikeReg: e.target.value })}
                     className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
@@ -220,13 +220,13 @@ export default function CustomersPage() {
                   onClick={() => setIsOpen(false)}
                   className="px-4 py-2 text-sm rounded-xl border border-slate-300 text-slate-600"
                 >
-                  বাতিল
+                  Cancel
                 </button>
                 <button
                   type="submit"
                   className="px-5 py-2 text-sm font-semibold rounded-xl bg-emerald-600 text-white"
                 >
-                  সংরক্ষণ
+                  Save Customer
                 </button>
               </div>
             </form>
