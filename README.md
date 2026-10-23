@@ -56,15 +56,22 @@
 
 ## 🚀 Running Locally
 
+Create a local environment file and set its placeholder values before starting the app:
+```bash
+cp .env.example .env
+```
+Use a strong, unique `NEXTAUTH_SECRET` and `POSTGRES_PASSWORD`. Keep `.env` private and out of version control.
+
 ### Option 1: Direct Node.js Run
 ```bash
 # 1. Install dependencies
 npm install
 
-# 2. Push database schema
+# 2. Set DATABASE_URL in .env to your PostgreSQL connection string
+# 3. Push database schema
 npx prisma db push
 
-# 3. Start development server
+# 4. Start development server
 npm run dev
 ```
 Open [http://localhost:3000](http://localhost:3000) in your browser.
@@ -72,9 +79,10 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ---
 
 ### Option 2: Run with Docker Compose
+Set `POSTGRES_PASSWORD` and `NEXTAUTH_SECRET` in `.env` first. Compose uses the database password for its internal database connection.
 ```bash
 # Start Next.js and PostgreSQL containers
-docker-compose up -d --build
+docker compose up -d --build
 ```
 Open [http://localhost:3000](http://localhost:3000).
 
