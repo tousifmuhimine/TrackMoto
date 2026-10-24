@@ -27,6 +27,7 @@ export async function PUT(
         totalIncome,
         paymentStatus: body.paymentStatus,
         paymentMethod: body.paymentMethod,
+        transactionId: body.transactionId || null,
         amountPaid: body.paymentStatus === "PAID" ? totalIncome : amountPaid,
         notes: body.notes,
         saleType: body.saleType || "SERVICE",

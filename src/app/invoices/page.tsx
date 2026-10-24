@@ -224,7 +224,15 @@ export default function InvoicesPage() {
                 </div>
 
                 <div className="flex justify-between text-emerald-700 font-semibold">
-                  <span>Amount Paid:</span>
+                  <span>
+                    Amount Paid ({selectedService.paymentMethod || "CASH"})
+                    {selectedService.transactionId && (
+                      <span className="text-xs font-mono text-slate-600 font-normal ml-1.5">
+                        • Trx/Ref: {selectedService.transactionId}
+                      </span>
+                    )}
+                    :
+                  </span>
                   <span>{formatCurrency(selectedService.amountPaid || selectedService.totalIncome)}</span>
                 </div>
 

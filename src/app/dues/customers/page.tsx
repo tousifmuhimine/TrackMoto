@@ -30,6 +30,7 @@ export default function CustomerDuesPage() {
   const [paymentForm, setPaymentForm] = useState({
     amount: "",
     method: "CASH",
+    transactionId: "",
     date: new Date().toISOString().split("T")[0],
     note: "",
   });
@@ -123,6 +124,7 @@ export default function CustomerDuesPage() {
         body: JSON.stringify({
           amount: payAmount,
           method: paymentForm.method,
+          transactionId: paymentForm.transactionId || null,
           date: paymentForm.date,
           note: paymentForm.note,
         }),
@@ -135,6 +137,7 @@ export default function CustomerDuesPage() {
       setPaymentForm({
         amount: "",
         method: "CASH",
+        transactionId: "",
         date: new Date().toISOString().split("T")[0],
         note: "",
       });
@@ -384,6 +387,7 @@ export default function CustomerDuesPage() {
                           setPaymentForm({
                             amount: due.remainingAmount.toString(),
                             method: "CASH",
+                            transactionId: "",
                             date: new Date().toISOString().split("T")[0],
                             note: "",
                           });
@@ -435,9 +439,14 @@ export default function CustomerDuesPage() {
                             <span className="font-semibold text-slate-800 dark:text-slate-200 block">
                               {formatCurrency(inst.amount)} ({inst.method})
                             </span>
-                            <span className="text-[11px] text-slate-400">
+                            <span className="text-[11px] text-slate-400 block">
                               📅 {formatDate(inst.date)}
                             </span>
+                            {inst.transactionId && (
+                              <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold block">
+                                Trx: {inst.transactionId}
+                              </span>
+                            )}
                           </div>
                           {inst.note && (
                             <span className="text-[10px] text-slate-500 max-w-[120px] truncate">
@@ -511,6 +520,30 @@ export default function CustomerDuesPage() {
                   <option value="BANK">Bank Transfer</option>
                 </select>
               </div>
+
+              {paymentForm.method !== "CASH" && (
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    {paymentForm.method === "BANK"
+                      ? "Bank Reference / Cheque No"
+                      : `${paymentForm.method} TrxID (Transaction ID)`}{" "}
+                    <span className="text-slate-400 font-normal text-[11px]">(Optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder={
+                      paymentForm.method === "BANK"
+                        ? "e.g., BRAC-994821 or Cheque #1234"
+                        : "e.g., 9K82JD01P"
+                    }
+                    value={paymentForm.transactionId}
+                    onChange={(e) =>
+                      setPaymentForm({ ...paymentForm, transactionId: e.target.value })
+                    }
+                    className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono uppercase"
+                  />
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">

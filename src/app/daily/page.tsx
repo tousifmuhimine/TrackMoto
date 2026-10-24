@@ -44,6 +44,7 @@ export default function DailySheetPage() {
     extraCharges: "",
     paymentStatus: "PAID",
     paymentMethod: "CASH",
+    transactionId: "",
     amountPaid: "",
     dueDate: "",
     notes: "",
@@ -108,6 +109,7 @@ export default function DailySheetPage() {
       extraCharges: (item.extraCharges ?? 0).toString(),
       paymentStatus: item.paymentStatus || "PAID",
       paymentMethod: item.paymentMethod || "CASH",
+      transactionId: item.transactionId || "",
       amountPaid: (item.amountPaid ?? 0).toString(),
       dueDate: item.dueDate || "",
       notes: item.notes || "",
@@ -155,6 +157,7 @@ export default function DailySheetPage() {
         extraCharges: Number(serviceForm.extraCharges || 0),
         paymentStatus: serviceForm.paymentStatus,
         paymentMethod: serviceForm.paymentMethod,
+        transactionId: serviceForm.transactionId || null,
         amountPaid: paid,
         dueDate: serviceForm.dueDate || null,
         notes: serviceForm.notes,
@@ -187,6 +190,7 @@ export default function DailySheetPage() {
         extraCharges: "",
         paymentStatus: "PAID",
         paymentMethod: "CASH",
+        transactionId: "",
         amountPaid: "",
         dueDate: "",
         notes: "",
@@ -523,6 +527,12 @@ export default function DailySheetPage() {
                           ? "Partial Due"
                           : "Full Due"}
                       </span>
+                      {item.paymentMethod && item.paymentMethod !== "CASH" && (
+                        <div className="text-[10px] text-slate-500 font-mono mt-0.5 font-medium">
+                          {item.paymentMethod}
+                          {item.transactionId && ` • ${item.transactionId}`}
+                        </div>
+                      )}
                     </td>
                     <td className="py-3 px-4 text-center">
                       <div className="flex items-center justify-center gap-1">
@@ -946,6 +956,30 @@ export default function DailySheetPage() {
                         setServiceForm({ ...serviceForm, amountPaid: e.target.value })
                       }
                       className="w-full px-3 py-2 text-sm rounded-xl border border-amber-300 dark:border-amber-700 bg-white dark:bg-slate-800 font-bold"
+                    />
+                  </div>
+                )}
+
+                {serviceForm.paymentMethod !== "CASH" && serviceForm.paymentMethod !== "DUE" && (
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      {serviceForm.paymentMethod === "BANK"
+                        ? "Bank Reference / Cheque No"
+                        : `${serviceForm.paymentMethod} TrxID (Transaction ID)`}{" "}
+                      <span className="text-slate-400 font-normal text-[11px]">(Optional)</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder={
+                        serviceForm.paymentMethod === "BANK"
+                          ? "e.g., BRAC-994821 or Cheque #1234"
+                          : "e.g., 9K82JD01P"
+                      }
+                      value={serviceForm.transactionId}
+                      onChange={(e) =>
+                        setServiceForm({ ...serviceForm, transactionId: e.target.value })
+                      }
+                      className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono uppercase"
                     />
                   </div>
                 )}

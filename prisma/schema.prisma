@@ -123,6 +123,7 @@ model Service {
   // Payment info
   paymentStatus  PaymentStatus   @default(PAID)
   paymentMethod  PaymentMethod   @default(CASH)
+  transactionId  String?         // Optional TrxID / Bank Reference / Check No
   amountPaid     Float           @default(0)
   notes          String?
   
@@ -185,6 +186,7 @@ model InstallmentPayment {
   customerDue   CustomerDue   @relation(fields: [customerDueId], references: [id], onDelete: Cascade)
   amount        Float
   method        PaymentMethod @default(CASH)
+  transactionId String?       // Optional TrxID / Bank Reference / Check No
   date          DateTime      @default(now())
   note          String?
   createdAt     DateTime      @default(now())
@@ -218,14 +220,15 @@ model DueEntry {
 }
 
 model DuePayment {
-  id         String        @id @default(cuid())
-  dueEntryId String
-  dueEntry   DueEntry      @relation(fields: [dueEntryId], references: [id], onDelete: Cascade)
-  amount     Float
-  method     PaymentMethod @default(CASH)
-  date       DateTime      @default(now())
-  note       String?
-  createdAt  DateTime      @default(now())
+  id            String        @id @default(cuid())
+  dueEntryId    String
+  dueEntry      DueEntry      @relation(fields: [dueEntryId], references: [id], onDelete: Cascade)
+  amount        Float
+  method        PaymentMethod @default(CASH)
+  transactionId String?       // Optional TrxID / Bank Reference / Check No
+  date          DateTime      @default(now())
+  note          String?
+  createdAt     DateTime      @default(now())
 }
 
 model InventoryItem {

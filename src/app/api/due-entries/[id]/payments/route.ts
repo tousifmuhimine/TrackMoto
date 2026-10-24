@@ -8,7 +8,7 @@ export async function POST(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { amount, method = "CASH", note, date } = body;
+    const { amount, method = "CASH", transactionId, note, date } = body;
 
     const paymentAmount = Number(amount);
     if (!paymentAmount || paymentAmount <= 0) {
@@ -40,6 +40,7 @@ export async function POST(
         dueEntryId: id,
         amount: paymentAmount,
         method,
+        transactionId: transactionId || null,
         note: note || "Payment",
         date: date ? new Date(date) : new Date(),
       },
