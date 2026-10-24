@@ -13,6 +13,7 @@ import {
   FileSpreadsheet,
   Settings,
   Scale,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -80,6 +81,16 @@ const navigation = [
 export function Sidebar() {
   const pathname = usePathname();
 
+  const handleLogout = async () => {
+    if (!confirm("Lock workshop and log out?")) return;
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      window.location.href = "/login";
+    } catch {
+      window.location.href = "/login";
+    }
+  };
+
   return (
     <aside className="hidden lg:flex flex-col w-72 bg-slate-900 text-slate-100 border-r border-slate-800/80 shrink-0 select-none">
       {/* Brand Header */}
@@ -90,7 +101,7 @@ export function Sidebar() {
         <div>
           <div className="flex items-center gap-1.5">
             <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent">
-              TrackMoto
+              TrackMotors
             </span>
             <span className="px-1.5 py-0.5 text-[10px] font-semibold tracking-wider uppercase rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
               Pro
@@ -159,21 +170,29 @@ export function Sidebar() {
       </div>
 
       {/* Workshop Profile Card at bottom */}
-      <div className="p-4 border-t border-slate-800/60 bg-slate-950/30">
+      <div className="p-4 border-t border-slate-800/60 bg-slate-950/30 space-y-2">
         <div className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-800/40 border border-slate-700/50">
           <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-sm">
             🏍️
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold text-slate-200 truncate">
-              TrackMoto Service Hub
+              TrackMotors Workshop
             </p>
             <p className="text-[11px] text-emerald-400 flex items-center gap-1 font-medium">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              System Active / Online
+              Secured & Online
             </p>
           </div>
         </div>
+
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-slate-800/60 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border border-slate-700/50 hover:border-rose-500/30 text-xs font-semibold transition-colors cursor-pointer"
+        >
+          <LogOut className="w-3.5 h-3.5" />
+          <span>Lock Workshop (Logout)</span>
+        </button>
       </div>
     </aside>
   );
