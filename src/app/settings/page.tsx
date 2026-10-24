@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Settings, Save, Info } from "lucide-react";
+import { Settings, Save } from "lucide-react";
 import { toast } from "sonner";
 
 export default function SettingsPage() {
   const [profile, setProfile] = useState({
-    workshopName: "TrackMoto Bike Workshop",
+    workshopName: "TrackMotors Workshop",
     address: "Plot 12, Main Road, Dhaka - 1216",
     phone: "+880 1711-223344",
     currency: "BDT",
@@ -90,16 +90,6 @@ export default function SettingsPage() {
             </button>
           </div>
         </form>
-      </div>
-
-      <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-3">
-        <h3 className="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2">
-          <Info className="w-4 h-4 text-emerald-600" />
-          <span>System Information & Hosting</span>
-        </h3>
-        <p className="text-xs text-slate-500 leading-relaxed">
-          TrackMoto is powered by Next.js 15 App Router, TypeScript, and Tailwind CSS. The data layer uses Prisma ORM configured for Neon Serverless Postgres in production and local Docker PostgreSQL for local environments. Ready for zero-config Vercel deployment.
-        </p>
       </div>
     </div>
   );
