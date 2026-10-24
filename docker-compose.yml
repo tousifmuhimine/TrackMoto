@@ -12,8 +12,7 @@ services:
       - NODE_ENV=production
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-trackmoto-bike-workshop-secret-key-2026}
       - NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME:-TrackMotors}
-      - WORKSHOP_PIN=${WORKSHOP_PIN:-1234}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-carboneight1122@}
     depends_on:
       db:
         condition: service_healthy

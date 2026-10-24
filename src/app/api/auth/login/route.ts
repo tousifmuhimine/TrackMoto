@@ -5,18 +5,16 @@ export async function POST(request: Request) {
   try {
     const { passcode } = await request.json();
 
-    const validPin = process.env.WORKSHOP_PIN || "1234";
-    const validPassword = process.env.ADMIN_PASSWORD || "admin";
-
+    const validPassword = process.env.ADMIN_PASSWORD || "carboneight1122@";
     const entered = (passcode || "").trim();
 
-    if (entered === validPin || entered === validPassword || entered.toLowerCase() === "trackmoto") {
+    if (entered === validPassword) {
       const cookieStore = await cookies();
       cookieStore.set("trackmoto_auth", "authenticated_session_token_trackmoto_2026", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
-        maxAge: 60 * 60 * 24 * 30, // 30 days
+        maxAge: 60 * 60 * 24 * 365 * 10, // 10 years (permanent)
         path: "/",
       });
 
@@ -27,7 +25,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(
-      { error: "Incorrect passcode. Default PIN is 1234." },
+      { error: "Incorrect password. Please try again." },
       { status: 401 }
     );
   } catch (err: any) {

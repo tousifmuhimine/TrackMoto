@@ -62,7 +62,7 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!passcode.trim()) {
-      toast.warning("Please enter your Workshop PIN or Password");
+      toast.warning("Please enter your Workshop Password");
       return;
     }
 
@@ -241,7 +241,7 @@ export default function LoginPage() {
                 </span>
               </h2>
               <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">
-                Workshop Safety Lock. Enter your workshop PIN or Master password to access financial ledger & services.
+                Workshop Safety Lock. Enter your workshop master password to access financial ledger & services.
               </p>
             </div>
           </div>
@@ -250,7 +250,7 @@ export default function LoginPage() {
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
-                Workshop Passcode / PIN
+                Workshop Password
               </label>
 
               <div className="relative">
@@ -262,10 +262,10 @@ export default function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   autoFocus
                   required
-                  placeholder="Enter PIN (e.g. 1234)"
+                  placeholder="Enter workshop password"
                   value={passcode}
                   onChange={(e) => setPasscode(e.target.value)}
-                  className="w-full pl-10 pr-11 py-3 text-sm rounded-xl bg-slate-950/80 border border-slate-700/80 text-white placeholder-slate-500 font-mono tracking-widest focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all shadow-inner"
+                  className="w-full pl-10 pr-11 py-3 text-sm rounded-xl bg-slate-950/80 border border-slate-700/80 text-white placeholder-slate-500 tracking-wider focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all shadow-inner"
                 />
 
                 <button
@@ -278,20 +278,8 @@ export default function LoginPage() {
                 </button>
               </div>
 
-              {/* Preset helper for easy entry */}
-              <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
-                <span className="flex items-center gap-1">
-                  <Lock className="w-3 h-3 text-slate-500" />
-                  <span>Default PIN:</span>
-                  <button
-                    type="button"
-                    onClick={() => setPasscode("1234")}
-                    className="font-mono text-emerald-400 font-bold hover:underline ml-0.5"
-                  >
-                    1234
-                  </button>
-                </span>
-
+              {/* Action helpers */}
+              <div className="mt-3 flex items-center justify-end text-xs text-slate-400">
                 <button
                   type="button"
                   onClick={() => setShowIntro(true)}
