@@ -39,7 +39,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, phone, address, tag = "NEW", bikeModel, bikeReg } = body;
+    const { name, phone, address, tag = "NEW", bikeModel, bikeReg, runningKm } = body;
 
     if (!name || !phone) {
       return NextResponse.json(
@@ -47,6 +47,8 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    const km = runningKm ? parseInt(runningKm, 10) : null;
 
     const customer = await prisma.customer.create({
       data: {
@@ -59,6 +61,7 @@ export async function POST(request: Request) {
               create: {
                 model: bikeModel,
                 registrationNo: bikeReg || null,
+                runningKm: km,
               },
             }
           : undefined,

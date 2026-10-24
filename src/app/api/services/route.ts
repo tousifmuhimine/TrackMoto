@@ -68,6 +68,8 @@ export async function POST(request: Request) {
       customerPhone,
       bikeModel,
       bikeReg,
+      runningKm,
+      saleType = "SERVICE",
       serviceCharge = 0,
       sparePartsCost = 0,
       engineOilCost = 0,
@@ -117,12 +119,19 @@ export async function POST(request: Request) {
       });
       if (existingBike) {
         bikeId = existingBike.id;
+        if (runningKm) {
+          await prisma.bike.update({
+            where: { id: existingBike.id },
+            data: { runningKm: parseInt(runningKm, 10) },
+          });
+        }
       } else {
         const newBike = await prisma.bike.create({
           data: {
             customerId,
             model: bikeModel,
             registrationNo: bikeReg || null,
+            runningKm: runningKm ? parseInt(runningKm, 10) : null,
           },
         });
         bikeId = newBike.id;
@@ -135,6 +144,8 @@ export async function POST(request: Request) {
         date: serviceDate,
         customerId: customerId || null,
         bikeId: bikeId || null,
+        saleType: saleType || "SERVICE",
+        runningKm: runningKm ? parseInt(runningKm, 10) : null,
         serviceCharge: Number(serviceCharge || 0),
         sparePartsCost: Number(sparePartsCost || 0),
         engineOilCost: Number(engineOilCost || 0),

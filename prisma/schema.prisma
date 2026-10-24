@@ -92,6 +92,7 @@ model Bike {
   customer       Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
   model          String        // e.g., Pulsar 150, FZS V3, Gixxer
   registrationNo String?       // e.g., Dhaka Metro-Ha-11-2233
+  runningKm      Int?          // Odometer reading / Mileage (KM)
   color          String?
   createdAt      DateTime      @default(now())
   services       Service[]
@@ -108,6 +109,10 @@ model Service {
   userId         String?
   user           User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
   
+  // Sale & Service info
+  saleType       String          @default("SERVICE") // "SERVICE" (servicing & repair) or "PARTS_ONLY" (direct counter parts sale)
+  runningKm      Int?            // Odometer reading at time of service/visit
+
   // Income items
   serviceCharge  Float           @default(0)
   sparePartsCost Float           @default(0)

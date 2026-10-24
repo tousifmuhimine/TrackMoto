@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users2, Plus, Phone, Bike, Search, Trash2 } from "lucide-react";
+import { Users2, Plus, Phone, Bike, Search, Trash2, Pencil } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -10,6 +10,7 @@ export default function CustomersPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const [editingCustomerId, setEditingCustomerId] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -18,6 +19,7 @@ export default function CustomersPage() {
     tag: "REGULAR",
     bikeModel: "",
     bikeReg: "",
+    runningKm: "",
   });
 
   const fetchCustomers = async () => {
@@ -37,19 +39,56 @@ export default function CustomersPage() {
     fetchCustomers();
   }, []);
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleOpenCreate = () => {
+    setEditingCustomerId(null);
+    setForm({
+      name: "",
+      phone: "",
+      address: "",
+      tag: "REGULAR",
+      bikeModel: "",
+      bikeReg: "",
+      runningKm: "",
+    });
+    setIsOpen(true);
+  };
+
+  const handleOpenEdit = (customer: any) => {
+    setEditingCustomerId(customer.id);
+    const bike = customer.bikes && customer.bikes[0];
+    setForm({
+      name: customer.name || "",
+      phone: customer.phone || "",
+      address: customer.address || "",
+      tag: customer.tag || "REGULAR",
+      bikeModel: bike?.model || "",
+      bikeReg: bike?.registrationNo || "",
+      runningKm: bike?.runningKm ? bike.runningKm.toString() : "",
+    });
+    setIsOpen(true);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch("/api/customers", {
-        method: "POST",
+      const url = editingCustomerId ? `/api/customers/${editingCustomerId}` : "/api/customers";
+      const method = editingCustomerId ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      if (!res.ok) throw new Error("Failed to create customer");
 
-      toast.success("Customer added successfully");
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to save customer");
+      }
+
+      toast.success(editingCustomerId ? "Customer updated successfully" : "Customer added successfully");
       setIsOpen(false);
-      setForm({ name: "", phone: "", address: "", tag: "REGULAR", bikeModel: "", bikeReg: "" });
+      setEditingCustomerId(null);
+      setForm({ name: "", phone: "", address: "", tag: "REGULAR", bikeModel: "", bikeReg: "", runningKm: "" });
       fetchCustomers();
     } catch (err: any) {
       toast.error(err.message);
@@ -103,7 +142,7 @@ export default function CustomersPage() {
             />
           </div>
           <button
-            onClick={() => setIsOpen(true)}
+            onClick={handleOpenCreate}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-sm"
           >
             <Plus className="w-4 h-4" />
@@ -139,6 +178,13 @@ export default function CustomersPage() {
                     {c.tag}
                   </span>
                   <button
+                    onClick={() => handleOpenEdit(c)}
+                    className="p-1.5 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-lg transition-colors"
+                    title="Edit customer"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                  <button
                     onClick={() => handleDeleteCustomer(c.id)}
                     className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors"
                     title="Delete customer"
@@ -149,11 +195,18 @@ export default function CustomersPage() {
               </div>
 
               {c.bikes && c.bikes.length > 0 && (
-                <div className="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-1.5 p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60">
-                  <Bike className="w-4 h-4 text-emerald-600" />
-                  <span>
-                    {c.bikes.map((b: any) => `${b.model} (${b.registrationNo || "No Reg"})`).join(", ")}
-                  </span>
+                <div className="text-xs text-slate-600 dark:text-slate-300 flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <Bike className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>
+                      {c.bikes.map((b: any) => `${b.model} (${b.registrationNo || "No Reg"})`).join(", ")}
+                    </span>
+                  </div>
+                  {c.bikes[0]?.runningKm && (
+                    <span className="px-2 py-0.5 text-[10px] font-mono font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 rounded shrink-0">
+                      {c.bikes[0].runningKm.toLocaleString()} KM
+                    </span>
+                  )}
                 </div>
               )}
 
@@ -182,11 +235,11 @@ export default function CustomersPage() {
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white pb-3 border-b border-slate-200 dark:border-slate-800">
-              New Customer Profile
+              {editingCustomerId ? "Edit Customer Profile" : "New Customer Profile"}
             </h3>
-            <form onSubmit={handleCreate} className="mt-4 space-y-3">
+            <form onSubmit={handleSave} className="mt-4 space-y-3">
               <div>
                 <label className="block text-xs font-semibold mb-1">Customer Name</label>
                 <input
@@ -197,15 +250,30 @@ export default function CustomersPage() {
                   className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
                 />
               </div>
-              <div>
-                <label className="block text-xs font-semibold mb-1">Phone Number</label>
-                <input
-                  type="text"
-                  required
-                  value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
-                />
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-xs font-semibold mb-1">Phone Number</label>
+                  <input
+                    type="text"
+                    required
+                    value={form.phone}
+                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                    className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1">Customer Tag</label>
+                  <select
+                    value={form.tag}
+                    onChange={(e) => setForm({ ...form, tag: e.target.value })}
+                    className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
+                  >
+                    <option value="REGULAR">Regular Customer</option>
+                    <option value="VIP">VIP Customer</option>
+                    <option value="NEW">New Customer</option>
+                    <option value="BAD_DEBT">Due Risk</option>
+                  </select>
+                </div>
               </div>
               <div>
                 <label className="block text-xs font-semibold mb-1">Address</label>
@@ -216,26 +284,49 @@ export default function CustomersPage() {
                   className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-xs font-semibold mb-1">Bike Model</label>
-                  <input
-                    type="text"
-                    placeholder="Pulsar / FZS"
-                    value={form.bikeModel}
-                    onChange={(e) => setForm({ ...form, bikeModel: e.target.value })}
-                    className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold mb-1">Registration No</label>
-                  <input
-                    type="text"
-                    placeholder="e.g., REG-1234"
-                    value={form.bikeReg}
-                    onChange={(e) => setForm({ ...form, bikeReg: e.target.value })}
-                    className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
-                  />
+
+              {/* Bike Details: Model, Registration No, Running KM */}
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                <span className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
+                  Motorcycle Details & Running Odometer
+                </span>
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-500 mb-1">
+                      Bike Model
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g., FZS V3"
+                      value={form.bikeModel}
+                      onChange={(e) => setForm({ ...form, bikeModel: e.target.value })}
+                      className="w-full px-2.5 py-1.5 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-500 mb-1">
+                      Registration No
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g., DHAKA-55-1234"
+                      value={form.bikeReg}
+                      onChange={(e) => setForm({ ...form, bikeReg: e.target.value })}
+                      className="w-full px-2.5 py-1.5 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-500 mb-1">
+                      Running KM
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="e.g., 18500"
+                      value={form.runningKm}
+                      onChange={(e) => setForm({ ...form, runningKm: e.target.value })}
+                      className="w-full px-2.5 py-1.5 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 font-mono"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -243,15 +334,15 @@ export default function CustomersPage() {
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  className="px-4 py-2 text-sm rounded-xl border border-slate-300 text-slate-600"
+                  className="px-4 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-sm font-semibold rounded-xl bg-emerald-600 text-white"
+                  className="px-5 py-2 text-sm font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white"
                 >
-                  Save Customer
+                  {editingCustomerId ? "Save Changes" : "Save Customer"}
                 </button>
               </div>
             </form>

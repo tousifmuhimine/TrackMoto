@@ -13,6 +13,7 @@ import {
   Bike as BikeIcon,
   Search,
   Trash2,
+  Pencil,
 } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { toast } from "sonner";
@@ -32,6 +33,54 @@ export default function CustomerDuesPage() {
     date: new Date().toISOString().split("T")[0],
     note: "",
   });
+
+  // Edit Due Modal State
+  const [editingDue, setEditingDue] = useState<any>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    totalAmount: "",
+    dueDate: "",
+    notes: "",
+  });
+
+  const handleOpenEditDue = (due: any) => {
+    setEditingDue(due);
+    setEditForm({
+      totalAmount: due.totalAmount?.toString() || "0",
+      dueDate: due.dueDate ? new Date(due.dueDate).toISOString().split("T")[0] : "",
+      notes: due.notes || "",
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateDue = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingDue) return;
+
+    try {
+      const res = await fetch(`/api/customer-dues/${editingDue.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          totalAmount: Number(editForm.totalAmount),
+          dueDate: editForm.dueDate || null,
+          notes: editForm.notes || null,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to update due record");
+      }
+
+      toast.success("Customer due updated successfully!");
+      setIsEditModalOpen(false);
+      setEditingDue(null);
+      fetchDues();
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  };
 
   const fetchDues = async () => {
     setLoading(true);
@@ -352,6 +401,13 @@ export default function CustomerDuesPage() {
                       </div>
                     )}
                     <button
+                      onClick={() => handleOpenEditDue(due)}
+                      className="p-2 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-lg transition-colors"
+                      title="Edit due record"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
                       onClick={() => handleDeleteDue(due.id)}
                       className="p-2 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors"
                       title="Delete due record"
@@ -499,6 +555,95 @@ export default function CustomerDuesPage() {
                   className="px-5 py-2 text-sm font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
                 >
                   Save Payment
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Edit Customer Due Modal */}
+      {isEditModalOpen && editingDue && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <Pencil className="w-5 h-5 text-emerald-600" />
+                  <span>Edit Customer Due</span>
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Customer: {editingDue.customerName || editingDue.customer?.name}
+                </p>
+              </div>
+              <button
+                onClick={() => setIsEditModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateDue} className="mt-4 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Total Bill / Due Amount (BDT)
+                </label>
+                <input
+                  type="number"
+                  required
+                  value={editForm.totalAmount}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, totalAmount: e.target.value })
+                  }
+                  className="w-full px-3 py-2 text-base font-bold rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-hidden focus:ring-2 focus:ring-emerald-500"
+                />
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Paid Amount: {formatCurrency(editingDue.paidAmount)}
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Due Promise Date
+                </label>
+                <input
+                  type="date"
+                  value={editForm.dueDate}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, dueDate: e.target.value })
+                  }
+                  className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Notes / Remarks
+                </label>
+                <textarea
+                  rows={2}
+                  value={editForm.notes}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, notes: e.target.value })
+                  }
+                  placeholder="Additional notes about this due..."
+                  className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                />
+              </div>
+
+              <div className="pt-2 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="px-4 py-2 text-sm font-semibold rounded-xl border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 text-sm font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                >
+                  Save Changes
                 </button>
               </div>
             </form>

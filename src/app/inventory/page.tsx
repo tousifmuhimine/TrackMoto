@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Package, Plus, AlertTriangle, Trash2 } from "lucide-react";
+import { Package, Plus, AlertTriangle, Trash2, Pencil } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -9,6 +9,7 @@ export default function InventoryPage() {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -37,17 +38,54 @@ export default function InventoryPage() {
     fetchInventory();
   }, []);
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleOpenCreate = () => {
+    setEditingItemId(null);
+    setForm({
+      name: "",
+      category: "ENGINE_OIL",
+      quantity: "",
+      buyPrice: "",
+      sellPrice: "",
+      reorderLevel: "5",
+      supplierName: "",
+    });
+    setIsOpen(true);
+  };
+
+  const handleOpenEdit = (item: any) => {
+    setEditingItemId(item.id);
+    setForm({
+      name: item.name || "",
+      category: item.category || "ENGINE_OIL",
+      quantity: item.quantity?.toString() || "0",
+      buyPrice: item.buyPrice?.toString() || "0",
+      sellPrice: item.sellPrice?.toString() || "0",
+      reorderLevel: item.reorderLevel?.toString() || "5",
+      supplierName: item.supplierName || "",
+    });
+    setIsOpen(true);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch("/api/inventory", {
-        method: "POST",
+      const url = editingItemId ? `/api/inventory/${editingItemId}` : "/api/inventory";
+      const method = editingItemId ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      if (!res.ok) throw new Error("Failed to add inventory item");
-      toast.success("Stock item added successfully");
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to save inventory item");
+      }
+
+      toast.success(editingItemId ? "Stock item updated successfully" : "Stock item added successfully");
       setIsOpen(false);
+      setEditingItemId(null);
       setForm({
         name: "",
         category: "ENGINE_OIL",
@@ -93,7 +131,7 @@ export default function InventoryPage() {
         </div>
 
         <button
-          onClick={() => setIsOpen(true)}
+          onClick={handleOpenCreate}
           className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-sm"
         >
           <Plus className="w-4 h-4" />
@@ -165,13 +203,22 @@ export default function InventoryPage() {
                         </span>
                       </td>
                       <td className="py-3 px-4 text-center">
-                        <button
-                          onClick={() => handleDeleteItem(item.id)}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors"
-                          title="Delete inventory item"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            onClick={() => handleOpenEdit(item)}
+                            className="p-1.5 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-lg transition-colors"
+                            title="Edit inventory item"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteItem(item.id)}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors"
+                            title="Delete inventory item"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -182,14 +229,14 @@ export default function InventoryPage() {
         </div>
       </div>
 
-      {/* Add Modal */}
+      {/* Add / Edit Modal */}
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white pb-3 border-b border-slate-200 dark:border-slate-800">
-              Add New Stock Item
+              {editingItemId ? "Edit Stock Item" : "Add New Stock Item"}
             </h3>
-            <form onSubmit={handleCreate} className="mt-4 space-y-3">
+            <form onSubmit={handleSave} className="mt-4 space-y-3">
               <div>
                 <label className="block text-xs font-semibold mb-1">Item Name</label>
                 <input
@@ -275,7 +322,7 @@ export default function InventoryPage() {
                   type="submit"
                   className="px-5 py-2 text-sm font-semibold rounded-xl bg-emerald-600 text-white"
                 >
-                  Save Item
+                  {editingItemId ? "Save Changes" : "Save Item"}
                 </button>
               </div>
             </form>

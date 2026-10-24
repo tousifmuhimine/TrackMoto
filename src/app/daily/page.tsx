@@ -5,6 +5,8 @@ import {
   Calendar as CalendarIcon,
   Plus,
   Trash2,
+  Pencil,
+  ShoppingBag,
   TrendingUp,
   TrendingDown,
   Wrench,
@@ -22,16 +24,20 @@ export default function DailySheetPage() {
   const [expenses, setExpenses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Modals
+  // Modals & Editing
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+  const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
+  const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
 
   // New service form state
   const [serviceForm, setServiceForm] = useState({
+    saleType: "SERVICE", // "SERVICE" or "PARTS_SALE"
     customerName: "",
     customerPhone: "",
     bikeModel: "",
     bikeReg: "",
+    runningKm: "",
     serviceCharge: "",
     sparePartsCost: "",
     engineOilCost: "",
@@ -86,7 +92,41 @@ export default function DailySheetPage() {
   const totalExpense = expenses.reduce((acc, e) => acc + (e.amount || 0), 0);
   const netTotal = totalIncome - totalExpense;
 
-  // Handle Create Service
+  // Open Edit Service Modal
+  const handleOpenEditService = (item: any) => {
+    setEditingServiceId(item.id);
+    setServiceForm({
+      saleType: item.saleType || "SERVICE",
+      customerName: item.customer?.name || "",
+      customerPhone: item.customer?.phone || "",
+      bikeModel: item.bike?.model || "",
+      bikeReg: item.bike?.registrationNo || "",
+      runningKm: item.runningKm ? item.runningKm.toString() : (item.bike?.runningKm ? item.bike.runningKm.toString() : ""),
+      serviceCharge: (item.serviceCharge ?? 0).toString(),
+      sparePartsCost: (item.sparePartsCost ?? 0).toString(),
+      engineOilCost: (item.engineOilCost ?? 0).toString(),
+      extraCharges: (item.extraCharges ?? 0).toString(),
+      paymentStatus: item.paymentStatus || "PAID",
+      paymentMethod: item.paymentMethod || "CASH",
+      amountPaid: (item.amountPaid ?? 0).toString(),
+      dueDate: item.dueDate || "",
+      notes: item.notes || "",
+    });
+    setIsServiceModalOpen(true);
+  };
+
+  // Open Edit Expense Modal
+  const handleOpenEditExpense = (exp: any) => {
+    setEditingExpenseId(exp.id);
+    setExpenseForm({
+      description: exp.description,
+      amount: exp.amount.toString(),
+      category: exp.category,
+    });
+    setIsExpenseModalOpen(true);
+  };
+
+  // Handle Save (Create or Update) Service
   const handleCreateService = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -103,10 +143,12 @@ export default function DailySheetPage() {
 
       const payload = {
         date: selectedDate.toISOString(),
+        saleType: serviceForm.saleType,
         customerName: serviceForm.customerName || "Walk-in Customer",
         customerPhone: serviceForm.customerPhone || "",
         bikeModel: serviceForm.bikeModel || "Bike",
         bikeReg: serviceForm.bikeReg,
+        runningKm: serviceForm.runningKm,
         serviceCharge: Number(serviceForm.serviceCharge || 0),
         sparePartsCost: Number(serviceForm.sparePartsCost || 0),
         engineOilCost: Number(serviceForm.engineOilCost || 0),
@@ -118,21 +160,27 @@ export default function DailySheetPage() {
         notes: serviceForm.notes,
       };
 
-      const res = await fetch("/api/services", {
-        method: "POST",
+      const url = editingServiceId ? `/api/services/${editingServiceId}` : "/api/services";
+      const method = editingServiceId ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) throw new Error("Failed to save service");
+      if (!res.ok) throw new Error(editingServiceId ? "Failed to update record" : "Failed to save service");
 
-      toast.success("Service record added successfully!");
+      toast.success(editingServiceId ? "Service record updated successfully!" : "Service record added successfully!");
       setIsServiceModalOpen(false);
+      setEditingServiceId(null);
       setServiceForm({
+        saleType: "SERVICE",
         customerName: "",
         customerPhone: "",
         bikeModel: "",
         bikeReg: "",
+        runningKm: "",
         serviceCharge: "",
         sparePartsCost: "",
         engineOilCost: "",
@@ -149,7 +197,7 @@ export default function DailySheetPage() {
     }
   };
 
-  // Handle Create Dynamic Expense
+  // Handle Save (Create or Update) Dynamic Expense
   const handleCreateExpense = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -158,8 +206,11 @@ export default function DailySheetPage() {
         return;
       }
 
-      const res = await fetch("/api/expenses", {
-        method: "POST",
+      const url = editingExpenseId ? `/api/expenses/${editingExpenseId}` : "/api/expenses";
+      const method = editingExpenseId ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           date: selectedDate.toISOString(),
@@ -169,10 +220,11 @@ export default function DailySheetPage() {
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to save expense");
+      if (!res.ok) throw new Error(editingExpenseId ? "Failed to update expense" : "Failed to save expense");
 
-      toast.success("Expense added successfully!");
+      toast.success(editingExpenseId ? "Expense updated successfully!" : "Expense added successfully!");
       setIsExpenseModalOpen(false);
+      setEditingExpenseId(null);
       setExpenseForm({ description: "", amount: "", category: "MISC" });
       fetchData();
     } catch (err: any) {
@@ -417,11 +469,26 @@ export default function DailySheetPage() {
                       {idx + 1}
                     </td>
                     <td className="py-3 px-4">
-                      <div className="font-semibold text-slate-800 dark:text-slate-100">
-                        {item.customer ? item.customer.name : "Walk-in"}
+                      <div className="font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                        <span>{item.customer ? item.customer.name : "Walk-in Customer"}</span>
+                        {item.saleType === "PARTS_SALE" && (
+                          <span className="px-1.5 py-0.5 text-[9px] font-bold rounded bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                            Parts Sale
+                          </span>
+                        )}
                       </div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                        <span>🏍️ {item.bike ? item.bike.model : "Bike"}</span>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 flex-wrap mt-0.5">
+                        <span>🏍️ {item.bike ? item.bike.model : "Motorcycle"}</span>
+                        {item.bike?.registrationNo && (
+                          <span className="font-mono text-slate-600 dark:text-slate-300">
+                            • {item.bike.registrationNo}
+                          </span>
+                        )}
+                        {(item.runningKm || item.bike?.runningKm) && (
+                          <span className="px-1.5 py-0.5 text-[10px] bg-slate-100 dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 rounded font-mono font-semibold">
+                            {(item.runningKm || item.bike?.runningKm).toLocaleString()} KM
+                          </span>
+                        )}
                         {item.customer?.phone && <span>• 📞 {item.customer.phone}</span>}
                       </div>
                     </td>
@@ -458,13 +525,22 @@ export default function DailySheetPage() {
                       </span>
                     </td>
                     <td className="py-3 px-4 text-center">
-                      <button
-                        onClick={() => handleDeleteService(item.id)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
-                        title="Delete record"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center justify-center gap-1">
+                        <button
+                          onClick={() => handleOpenEditService(item)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors"
+                          title="Edit record"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteService(item.id)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                          title="Delete record"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -572,13 +648,22 @@ export default function DailySheetPage() {
                       {formatCurrency(exp.amount)}
                     </td>
                     <td className="py-3 px-4 text-center">
-                      <button
-                        onClick={() => handleDeleteExpense(exp.id)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
-                        title="Delete expense"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center justify-center gap-1">
+                        <button
+                          onClick={() => handleOpenEditExpense(exp)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors"
+                          title="Edit expense"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteExpense(exp.id)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                          title="Delete expense"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -608,7 +693,7 @@ export default function DailySheetPage() {
             <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Wrench className="w-5 h-5 text-emerald-600" />
-                <span>New Service & Sales Entry</span>
+                <span>{editingServiceId ? "Edit Service / Sale Record" : "New Service & Sales Entry"}</span>
               </h3>
               <button
                 onClick={() => setIsServiceModalOpen(false)}
@@ -619,6 +704,39 @@ export default function DailySheetPage() {
             </div>
 
             <form onSubmit={handleCreateService} className="mt-4 space-y-4">
+              {/* Transaction Type: Service vs Over-The-Counter Parts Sale */}
+              <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setServiceForm({ ...serviceForm, saleType: "SERVICE" })}
+                  className={`flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-lg transition-all ${
+                    serviceForm.saleType === "SERVICE"
+                      ? "bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-xs"
+                      : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                  }`}
+                >
+                  <Wrench className="w-3.5 h-3.5" />
+                  <span>Servicing & Repair</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setServiceForm({
+                      ...serviceForm,
+                      saleType: "PARTS_SALE",
+                      serviceCharge: "0",
+                    })
+                  }
+                  className={`flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-lg transition-all ${
+                    serviceForm.saleType === "PARTS_SALE"
+                      ? "bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-xs"
+                      : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+                  }`}
+                >
+                  <ShoppingBag className="w-3.5 h-3.5" />
+                  <span>Direct Parts / Oil Sale</span>
+                </button>
+              </div>
               {/* Customer info */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
@@ -652,8 +770,8 @@ export default function DailySheetPage() {
                 </div>
               </div>
 
-              {/* Bike Info */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Bike Info + Running KM */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Bike Model
@@ -661,7 +779,7 @@ export default function DailySheetPage() {
                   <input
                     type="text"
                     required
-                    placeholder="e.g., Pulsar 150 / Yamaha FZS"
+                    placeholder="e.g., Pulsar 150 / FZS"
                     value={serviceForm.bikeModel}
                     onChange={(e) =>
                       setServiceForm({ ...serviceForm, bikeModel: e.target.value })
@@ -671,7 +789,7 @@ export default function DailySheetPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    Registration No (Optional)
+                    Registration No
                   </label>
                   <input
                     type="text"
@@ -679,6 +797,21 @@ export default function DailySheetPage() {
                     value={serviceForm.bikeReg}
                     onChange={(e) =>
                       setServiceForm({ ...serviceForm, bikeReg: e.target.value })
+                    }
+                    className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-hidden"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 flex items-center justify-between">
+                    <span>Running KM</span>
+                    <span className="text-[10px] text-emerald-600 font-bold uppercase">Odometer</span>
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="e.g., 14500"
+                    value={serviceForm.runningKm}
+                    onChange={(e) =>
+                      setServiceForm({ ...serviceForm, runningKm: e.target.value })
                     }
                     className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-hidden"
                   />
@@ -795,6 +928,7 @@ export default function DailySheetPage() {
                     <option value="CASH">Cash</option>
                     <option value="BKASH">bKash</option>
                     <option value="NAGAD">Nagad</option>
+                    <option value="BANK">Bank Transfer / Card</option>
                     <option value="DUE">Due</option>
                   </select>
                 </div>
@@ -846,7 +980,7 @@ export default function DailySheetPage() {
                   type="submit"
                   className="px-5 py-2 text-sm font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
                 >
-                  Save Service Record
+                  {editingServiceId ? "Save Changes" : "Save Service Record"}
                 </button>
               </div>
             </form>
@@ -861,7 +995,7 @@ export default function DailySheetPage() {
             <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Receipt className="w-5 h-5 text-rose-600" />
-                <span>Add Daily Expense</span>
+                <span>{editingExpenseId ? "Edit Daily Expense" : "Add Daily Expense"}</span>
               </h3>
               <button
                 onClick={() => setIsExpenseModalOpen(false)}
@@ -937,7 +1071,7 @@ export default function DailySheetPage() {
                   type="submit"
                   className="px-5 py-2 text-sm font-semibold rounded-xl bg-rose-600 hover:bg-rose-700 text-white shadow-sm"
                 >
-                  Save Expense
+                  {editingExpenseId ? "Save Changes" : "Save Expense"}
                 </button>
               </div>
             </form>

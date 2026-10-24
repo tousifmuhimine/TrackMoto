@@ -109,7 +109,7 @@ export default function InvoicesPage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-2xl font-black tracking-tight text-emerald-600">
-                      TrackMoto
+                      TrackMotors
                     </span>
                     <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                       Workshop
@@ -123,7 +123,7 @@ export default function InvoicesPage() {
 
                 <div className="text-right">
                   <span className="text-lg font-bold uppercase tracking-wider text-slate-800 block">
-                    CASH MEMO / INVOICE
+                    {selectedService.saleType === "PARTS_SALE" ? "PARTS & OIL MEMO" : "CASH MEMO / INVOICE"}
                   </span>
                   <span className="text-xs font-mono text-slate-400">
                     Memo No: #{selectedService.id.slice(-8).toUpperCase()}
@@ -160,6 +160,11 @@ export default function InvoicesPage() {
                   {selectedService.bike?.registrationNo && (
                     <span className="text-xs text-slate-600 block">
                       Reg: {selectedService.bike.registrationNo}
+                    </span>
+                  )}
+                  {(selectedService.runningKm || selectedService.bike?.runningKm) && (
+                    <span className="text-xs text-emerald-700 font-semibold block">
+                      Odometer: {(selectedService.runningKm || selectedService.bike?.runningKm).toLocaleString()} KM
                     </span>
                   )}
                 </div>
