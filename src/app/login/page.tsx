@@ -310,7 +310,7 @@ export default function LoginPage() {
 
           {/* Footer Safety Notice */}
           <div className="mt-6 pt-5 border-t border-slate-800/80 text-center text-[11px] text-slate-500">
-            Protected internal workshop portal • No customer signup required
+            Protected internal workshop management system
           </div>
         </div>
       </motion.div>
