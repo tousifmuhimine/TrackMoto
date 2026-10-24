@@ -8,10 +8,12 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - "DATABASE_URL=postgresql://trackmoto:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/trackmoto?schema=public"
+      - DATABASE_URL=${DATABASE_URL}
       - NODE_ENV=production
-      - "NEXTAUTH_SECRET=${NEXTAUTH_SECRET:?Set NEXTAUTH_SECRET in .env}"
-      - NEXT_PUBLIC_APP_NAME=TrackMoto
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-trackmoto-bike-workshop-secret-key-2026}
+      - NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME:-TrackMotors}
+      - WORKSHOP_PIN=${WORKSHOP_PIN:-1234}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
     depends_on:
       db:
         condition: service_healthy
@@ -24,7 +26,7 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_USER: trackmoto
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-trackmoto_secure_password_2026}
       POSTGRES_DB: trackmoto
     volumes:
       - pgdata:/var/lib/postgresql/data
