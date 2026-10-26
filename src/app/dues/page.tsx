@@ -196,7 +196,10 @@ export default function BidirectionalDuesPage() {
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to record payment");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        throw new Error(errorData?.error || errorData?.details || "Failed to record payment");
+      }
 
       toast.success("Payment recorded successfully!");
       setIsPaymentModalOpen(false);

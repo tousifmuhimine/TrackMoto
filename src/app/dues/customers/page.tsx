@@ -130,7 +130,10 @@ export default function CustomerDuesPage() {
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to record installment");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        throw new Error(errorData?.error || errorData?.details || "Failed to record installment");
+      }
 
       toast.success("Installment payment recorded successfully!");
       setIsPaymentModalOpen(false);

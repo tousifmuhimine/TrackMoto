@@ -172,7 +172,10 @@ export default function DailySheetPage() {
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) throw new Error(editingServiceId ? "Failed to update record" : "Failed to save service");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        throw new Error(errorData?.error || errorData?.details || (editingServiceId ? "Failed to update record" : "Failed to save service"));
+      }
 
       toast.success(editingServiceId ? "Service record updated successfully!" : "Service record added successfully!");
       setIsServiceModalOpen(false);
@@ -224,7 +227,10 @@ export default function DailySheetPage() {
         }),
       });
 
-      if (!res.ok) throw new Error(editingExpenseId ? "Failed to update expense" : "Failed to save expense");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        throw new Error(errorData?.error || errorData?.details || (editingExpenseId ? "Failed to update expense" : "Failed to save expense"));
+      }
 
       toast.success(editingExpenseId ? "Expense updated successfully!" : "Expense added successfully!");
       setIsExpenseModalOpen(false);
