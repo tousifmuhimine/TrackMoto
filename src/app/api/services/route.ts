@@ -11,11 +11,9 @@ export async function GET(request: Request) {
     let whereClause: any = {};
 
     if (dateStr) {
-      const startOfDay = new Date(dateStr);
-      startOfDay.setHours(0, 0, 0, 0);
-
-      const endOfDay = new Date(dateStr);
-      endOfDay.setHours(23, 59, 59, 999);
+      const parts = dateStr.split("T")[0].split("-").map(Number);
+      const startOfDay = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2], 0, 0, 0, 0));
+      const endOfDay = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2], 23, 59, 59, 999));
 
       whereClause.date = {
         gte: startOfDay,
@@ -88,7 +86,19 @@ export async function POST(request: Request) {
       Number(engineOilCost || 0) +
       Number(extraCharges || 0);
 
-    const serviceDate = date ? new Date(date) : new Date();
+    let serviceDate = new Date();
+    if (date) {
+      if (typeof date === "string" && date.includes("-")) {
+        const parts = date.split("T")[0].split("-").map(Number);
+        if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) {
+          serviceDate = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2], 12, 0, 0));
+        } else {
+          serviceDate = new Date(date);
+        }
+      } else {
+        serviceDate = new Date(date);
+      }
+    }
 
     // 1. Find or create customer if name/phone is provided
     let customerId = body.customerId;

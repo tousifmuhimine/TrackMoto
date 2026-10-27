@@ -9,13 +9,27 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
 
+    let expenseDate: Date | undefined = undefined;
+    if (body.date) {
+      if (typeof body.date === "string" && body.date.includes("-")) {
+        const parts = body.date.split("T")[0].split("-").map(Number);
+        if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) {
+          expenseDate = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2], 12, 0, 0));
+        } else {
+          expenseDate = new Date(body.date);
+        }
+      } else {
+        expenseDate = new Date(body.date);
+      }
+    }
+
     const updated = await prisma.expense.update({
       where: { id },
       data: {
         description: body.description,
         amount: parseFloat(body.amount || 0),
         category: body.category || "MISC",
-        ...(body.date ? { date: new Date(body.date) } : {}),
+        ...(expenseDate ? { date: expenseDate } : {}),
       },
     });
 

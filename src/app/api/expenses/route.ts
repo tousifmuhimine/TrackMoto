@@ -11,11 +11,9 @@ export async function GET(request: Request) {
     let whereClause: any = {};
 
     if (dateStr) {
-      const startOfDay = new Date(dateStr);
-      startOfDay.setHours(0, 0, 0, 0);
-
-      const endOfDay = new Date(dateStr);
-      endOfDay.setHours(23, 59, 59, 999);
+      const parts = dateStr.split("T")[0].split("-").map(Number);
+      const startOfDay = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2], 0, 0, 0, 0));
+      const endOfDay = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2], 23, 59, 59, 999));
 
       whereClause.date = {
         gte: startOfDay,
@@ -62,9 +60,23 @@ export async function POST(request: Request) {
       );
     }
 
+    let expenseDate = new Date();
+    if (date) {
+      if (typeof date === "string" && date.includes("-")) {
+        const parts = date.split("T")[0].split("-").map(Number);
+        if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) {
+          expenseDate = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2], 12, 0, 0));
+        } else {
+          expenseDate = new Date(date);
+        }
+      } else {
+        expenseDate = new Date(date);
+      }
+    }
+
     const expense = await prisma.expense.create({
       data: {
-        date: date ? new Date(date) : new Date(),
+        date: expenseDate,
         description,
         amount: Number(amount),
         category,

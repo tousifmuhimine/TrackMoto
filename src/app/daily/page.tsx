@@ -32,6 +32,7 @@ export default function DailySheetPage() {
 
   // New service form state
   const [serviceForm, setServiceForm] = useState({
+    date: format(new Date(), "yyyy-MM-dd"),
     saleType: "SERVICE", // "SERVICE" or "PARTS_SALE"
     customerName: "",
     customerPhone: "",
@@ -52,6 +53,7 @@ export default function DailySheetPage() {
 
   // New dynamic expense form state
   const [expenseForm, setExpenseForm] = useState({
+    date: format(new Date(), "yyyy-MM-dd"),
     description: "",
     amount: "",
     category: "MISC",
@@ -93,10 +95,37 @@ export default function DailySheetPage() {
   const totalExpense = expenses.reduce((acc, e) => acc + (e.amount || 0), 0);
   const netTotal = totalIncome - totalExpense;
 
+  // Open New Service Modal
+  const handleOpenNewService = () => {
+    setEditingServiceId(null);
+    setServiceForm({
+      date: format(selectedDate, "yyyy-MM-dd"),
+      saleType: "SERVICE",
+      customerName: "",
+      customerPhone: "",
+      bikeModel: "",
+      bikeReg: "",
+      runningKm: "",
+      serviceCharge: "",
+      sparePartsCost: "",
+      engineOilCost: "",
+      extraCharges: "",
+      paymentStatus: "PAID",
+      paymentMethod: "CASH",
+      transactionId: "",
+      amountPaid: "",
+      dueDate: "",
+      notes: "",
+    });
+    setIsServiceModalOpen(true);
+  };
+
   // Open Edit Service Modal
   const handleOpenEditService = (item: any) => {
     setEditingServiceId(item.id);
+    const itemDate = item.date ? new Date(item.date) : selectedDate;
     setServiceForm({
+      date: format(itemDate, "yyyy-MM-dd"),
       saleType: item.saleType || "SERVICE",
       customerName: item.customer?.name || "",
       customerPhone: item.customer?.phone || "",
@@ -117,10 +146,24 @@ export default function DailySheetPage() {
     setIsServiceModalOpen(true);
   };
 
+  // Open New Expense Modal
+  const handleOpenNewExpense = () => {
+    setEditingExpenseId(null);
+    setExpenseForm({
+      date: format(selectedDate, "yyyy-MM-dd"),
+      description: "",
+      amount: "",
+      category: "MISC",
+    });
+    setIsExpenseModalOpen(true);
+  };
+
   // Open Edit Expense Modal
   const handleOpenEditExpense = (exp: any) => {
     setEditingExpenseId(exp.id);
+    const expDate = exp.date ? new Date(exp.date) : selectedDate;
     setExpenseForm({
+      date: format(expDate, "yyyy-MM-dd"),
       description: exp.description,
       amount: exp.amount.toString(),
       category: exp.category,
@@ -143,8 +186,10 @@ export default function DailySheetPage() {
           ? totalCost
           : Number(serviceForm.amountPaid || 0);
 
+      const targetDate = serviceForm.date || format(selectedDate, "yyyy-MM-dd");
+
       const payload = {
-        date: selectedDate.toISOString(),
+        date: targetDate,
         saleType: serviceForm.saleType,
         customerName: serviceForm.customerName || "Walk-in Customer",
         customerPhone: serviceForm.customerPhone || "",
@@ -181,6 +226,7 @@ export default function DailySheetPage() {
       setIsServiceModalOpen(false);
       setEditingServiceId(null);
       setServiceForm({
+        date: format(selectedDate, "yyyy-MM-dd"),
         saleType: "SERVICE",
         customerName: "",
         customerPhone: "",
@@ -198,7 +244,14 @@ export default function DailySheetPage() {
         dueDate: "",
         notes: "",
       });
-      fetchData();
+
+      // Navigate to targetDate if entered date differs from currently viewed date
+      if (targetDate !== formattedDateParam) {
+        const [y, m, d] = targetDate.split("-").map(Number);
+        setSelectedDate(new Date(y, m - 1, d));
+      } else {
+        fetchData();
+      }
     } catch (err: any) {
       toast.error(err.message);
     }
@@ -213,6 +266,8 @@ export default function DailySheetPage() {
         return;
       }
 
+      const targetDate = expenseForm.date || format(selectedDate, "yyyy-MM-dd");
+
       const url = editingExpenseId ? `/api/expenses/${editingExpenseId}` : "/api/expenses";
       const method = editingExpenseId ? "PUT" : "POST";
 
@@ -220,7 +275,7 @@ export default function DailySheetPage() {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          date: selectedDate.toISOString(),
+          date: targetDate,
           description: expenseForm.description,
           amount: Number(expenseForm.amount),
           category: expenseForm.category,
@@ -235,8 +290,15 @@ export default function DailySheetPage() {
       toast.success(editingExpenseId ? "Expense updated successfully!" : "Expense added successfully!");
       setIsExpenseModalOpen(false);
       setEditingExpenseId(null);
-      setExpenseForm({ description: "", amount: "", category: "MISC" });
-      fetchData();
+      setExpenseForm({ date: format(selectedDate, "yyyy-MM-dd"), description: "", amount: "", category: "MISC" });
+
+      // Navigate to targetDate if entered date differs from currently viewed date
+      if (targetDate !== formattedDateParam) {
+        const [y, m, d] = targetDate.split("-").map(Number);
+        setSelectedDate(new Date(y, m - 1, d));
+      } else {
+        fetchData();
+      }
     } catch (err: any) {
       toast.error(err.message);
     }
@@ -293,9 +355,19 @@ export default function DailySheetPage() {
             <ChevronLeft className="w-5 h-5" />
           </button>
 
-          <div className="px-3 py-1 text-sm font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-            <CalendarIcon className="w-4 h-4 text-emerald-600" />
-            <span>{format(selectedDate, "dd MMM yyyy")}</span>
+          <div className="relative flex items-center gap-2 px-2 py-1 bg-white dark:bg-slate-700 rounded-lg shadow-2xs border border-slate-200 dark:border-slate-600">
+            <CalendarIcon className="w-4 h-4 text-emerald-600 pointer-events-none" />
+            <input
+              type="date"
+              value={format(selectedDate, "yyyy-MM-dd")}
+              onChange={(e) => {
+                if (e.target.value) {
+                  const [y, m, d] = e.target.value.split("-").map(Number);
+                  setSelectedDate(new Date(y, m - 1, d));
+                }
+              }}
+              className="bg-transparent text-sm font-bold text-slate-800 dark:text-slate-100 outline-hidden cursor-pointer"
+            />
           </div>
 
           <button
@@ -308,7 +380,7 @@ export default function DailySheetPage() {
 
           <button
             onClick={() => setSelectedDate(new Date())}
-            className="ml-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+            className="ml-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors cursor-pointer"
           >
             Today
           </button>
@@ -430,7 +502,7 @@ export default function DailySheetPage() {
           </div>
 
           <button
-            onClick={() => setIsServiceModalOpen(true)}
+            onClick={handleOpenNewService}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-sm transition-all"
           >
             <Plus className="w-4 h-4" />
@@ -608,7 +680,7 @@ export default function DailySheetPage() {
           </div>
 
           <button
-            onClick={() => setIsExpenseModalOpen(true)}
+            onClick={handleOpenNewExpense}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-sm shadow-sm transition-all"
           >
             <Plus className="w-4 h-4" />
@@ -752,6 +824,23 @@ export default function DailySheetPage() {
                   <ShoppingBag className="w-3.5 h-3.5" />
                   <span>Direct Parts / Oil Sale</span>
                 </button>
+              </div>
+
+              {/* Service / Record Date */}
+              <div className="bg-emerald-50/70 dark:bg-emerald-950/20 p-3 rounded-xl border border-emerald-200 dark:border-emerald-900/40">
+                <label className="block text-xs font-bold text-emerald-800 dark:text-emerald-300 mb-1 flex items-center gap-1.5">
+                  <CalendarIcon className="w-4 h-4 text-emerald-600" />
+                  <span>Service / Record Date</span>
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={serviceForm.date}
+                  onChange={(e) =>
+                    setServiceForm({ ...serviceForm, date: e.target.value })
+                  }
+                  className="w-full px-3 py-2 text-sm font-semibold rounded-xl border border-emerald-300 dark:border-emerald-800 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-hidden"
+                />
               </div>
               {/* Customer info */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1046,6 +1135,23 @@ export default function DailySheetPage() {
             </div>
 
             <form onSubmit={handleCreateExpense} className="mt-4 space-y-4">
+              {/* Expense Date */}
+              <div className="bg-rose-50/70 dark:bg-rose-950/20 p-3 rounded-xl border border-rose-200 dark:border-rose-900/40">
+                <label className="block text-xs font-bold text-rose-800 dark:text-rose-300 mb-1 flex items-center gap-1.5">
+                  <CalendarIcon className="w-4 h-4 text-rose-600" />
+                  <span>Expense Date</span>
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={expenseForm.date}
+                  onChange={(e) =>
+                    setExpenseForm({ ...expenseForm, date: e.target.value })
+                  }
+                  className="w-full px-3 py-2 text-sm font-semibold rounded-xl border border-rose-300 dark:border-rose-800 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-hidden focus:ring-2 focus:ring-rose-500"
+                />
+              </div>
+
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Expense Description

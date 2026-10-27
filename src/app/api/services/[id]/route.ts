@@ -17,6 +17,20 @@ export async function PUT(
     const amountPaid = parseFloat(body.amountPaid || 0);
     const runningKm = body.runningKm ? parseInt(body.runningKm, 10) : null;
 
+    let serviceDate: Date | undefined = undefined;
+    if (body.date) {
+      if (typeof body.date === "string" && body.date.includes("-")) {
+        const parts = body.date.split("T")[0].split("-").map(Number);
+        if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) {
+          serviceDate = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2], 12, 0, 0));
+        } else {
+          serviceDate = new Date(body.date);
+        }
+      } else {
+        serviceDate = new Date(body.date);
+      }
+    }
+
     const updated = await prisma.service.update({
       where: { id },
       data: {
@@ -32,7 +46,7 @@ export async function PUT(
         notes: body.notes,
         saleType: body.saleType || "SERVICE",
         runningKm,
-        ...(body.date ? { date: new Date(body.date) } : {}),
+        ...(serviceDate ? { date: serviceDate } : {}),
       },
       include: {
         customer: true,
