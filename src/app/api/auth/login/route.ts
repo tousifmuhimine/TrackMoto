@@ -10,17 +10,19 @@ export async function POST(request: Request) {
 
     if (entered === validPassword) {
       const cookieStore = await cookies();
-      cookieStore.set("trackmoto_auth", "authenticated_session_token_trackmoto_2026", {
+      const cookieOptions = {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        sameSite: "lax" as const,
         maxAge: 60 * 60 * 24 * 365 * 10, // 10 years (permanent)
         path: "/",
-      });
+      };
+      cookieStore.set("trackmoto_auth", "authenticated_session_token_trackmoto_2026", cookieOptions);
+      cookieStore.set("carbon8_auth", "authenticated_session_token_carbon8_2026", cookieOptions);
 
       return NextResponse.json({
         success: true,
-        message: "Access granted! Welcome to TrackMotors.",
+        message: "Access granted! Welcome to Carbon 8.",
       });
     }
 

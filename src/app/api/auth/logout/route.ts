@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 
 export async function POST() {
   const cookieStore = await cookies();
+  cookieStore.delete("carbon8_auth");
   cookieStore.delete("trackmoto_auth");
   return NextResponse.json({ success: true, message: "Logged out successfully" });
 }

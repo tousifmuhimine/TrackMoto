@@ -55,7 +55,7 @@ export default function MonthlySummaryPage() {
     const worksheet = XLSX.utils.json_to_sheet(rows);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, `Monthly_Report_${year}`);
-    XLSX.writeFile(workbook, `TrackMoto_Monthly_Report_${year}.xlsx`);
+    XLSX.writeFile(workbook, `Carbon8_Monthly_Report_${year}.xlsx`);
     toast.success("Excel report exported successfully!");
   };
 

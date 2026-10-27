@@ -108,8 +108,9 @@ export default function InvoicesPage() {
               <div className="flex justify-between items-start pb-6 border-b border-slate-200">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-2xl font-black tracking-tight text-emerald-600">
-                      TrackMotors
+                    <span className="text-2xl font-black tracking-tight">
+                      <span className="text-slate-900">Carbon </span>
+                      <span className="text-red-600 font-extrabold">8</span>
                     </span>
                     <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                       Workshop

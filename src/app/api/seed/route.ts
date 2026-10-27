@@ -194,7 +194,7 @@ export async function POST() {
       update: {},
       create: {
         id: "default",
-        workshopName: "TrackMoto Bike Workshop",
+        workshopName: "Carbon 8 Workshop",
         address: "Plot 12, Main Road, Dhaka - 1216",
         phone: "+880 1711-223344",
         currency: "BDT",

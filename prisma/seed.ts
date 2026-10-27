@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("Seeding TrackMoto database on Neon PostgreSQL...");
+  console.log("Seeding Carbon 8 database on Neon PostgreSQL...");
 
   // 1. Customers
   const customer1 = await prisma.customer.upsert({
@@ -199,7 +199,7 @@ async function main() {
     update: {},
     create: {
       id: "default",
-      workshopName: "TrackMoto Bike Workshop",
+      workshopName: "Carbon 8 Workshop",
       address: "Plot 12, Main Road, Dhaka - 1216",
       phone: "+880 1711-223344",
       currency: "BDT",

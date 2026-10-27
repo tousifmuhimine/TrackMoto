@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 export default function SettingsPage() {
   const [profile, setProfile] = useState({
-    workshopName: "TrackMotors Workshop",
+    workshopName: "Carbon 8 Workshop",
     address: "Plot 12, Main Road, Dhaka - 1216",
     phone: "+880 1711-223344",
     currency: "BDT",

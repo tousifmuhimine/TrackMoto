@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const authCookie = request.cookies.get("trackmoto_auth");
+  const authCookie = request.cookies.get("carbon8_auth") || request.cookies.get("trackmoto_auth");
   const isAuthenticated = Boolean(authCookie?.value);
 
   // If already logged in and visiting /login, redirect to dashboard

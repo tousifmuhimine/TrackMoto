@@ -17,6 +17,7 @@ import {
   Zap,
 } from "lucide-react";
 import { toast } from "sonner";
+import { Carbon8Logo, Carbon8BrandName } from "@/components/ui/carbon8-logo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -78,7 +79,7 @@ export default function LoginPage() {
 
       if (res.ok) {
         toast.success("Welcome back!", {
-          description: "Access granted to TrackMotors Workshop.",
+          description: "Access granted to Carbon 8 Workshop.",
         });
         router.push("/");
         router.refresh();
@@ -143,19 +144,18 @@ export default function LoginPage() {
                 className="relative flex items-center justify-center"
               >
                 {/* Glowing Outer Ring */}
-                <div className="w-36 h-36 rounded-full border-2 border-emerald-500/30 flex items-center justify-center shadow-[0_0_50px_rgba(16,185,129,0.3)] relative">
-                  <div className="absolute inset-1 rounded-full border border-teal-400/20 animate-spin" style={{ animationDuration: "6s" }} />
+                <div className="w-36 h-36 rounded-full border-2 border-red-500/30 flex items-center justify-center shadow-[0_0_50px_rgba(239,68,68,0.3)] relative">
+                  <div className="absolute inset-1 rounded-full border border-red-500/20 animate-spin" style={{ animationDuration: "6s" }} />
 
-                  {/* Bike Icon in center */}
+                  {/* Carbon 8 Logo in center */}
                   <motion.div
                     animate={{
                       y: [0, -3, 0],
                       rotate: [0, 1, -1, 0],
                     }}
                     transition={{ repeat: Infinity, duration: 0.4 }}
-                    className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-500/50"
                   >
-                    <Bike className="w-9 h-9 text-white" />
+                    <Carbon8Logo size="lg" withGlow />
                   </motion.div>
                 </div>
 
@@ -163,7 +163,7 @@ export default function LoginPage() {
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="absolute -bottom-3 px-3 py-1 bg-slate-900 border border-emerald-500/50 rounded-full text-xs font-mono font-bold tracking-wider text-emerald-400 flex items-center gap-1.5 shadow-md"
+                  className="absolute -bottom-3 px-3 py-1 bg-slate-900 border border-red-500/50 rounded-full text-xs font-mono font-bold tracking-wider text-red-400 flex items-center gap-1.5 shadow-md"
                 >
                   <Flame className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
                   <span>{rpm.toLocaleString()} RPM</span>
@@ -178,17 +178,18 @@ export default function LoginPage() {
                 className="space-y-2"
               >
                 <div className="relative inline-block">
-                  <h1 className="text-5xl sm:text-6xl font-black tracking-tight uppercase bg-gradient-to-r from-white via-slate-100 to-emerald-400 bg-clip-text text-transparent drop-shadow-[0_0_35px_rgba(16,185,129,0.4)]">
-                    TrackMotors
+                  <h1 className="text-5xl sm:text-6xl font-black tracking-tight uppercase drop-shadow-[0_0_35px_rgba(239,68,68,0.5)]">
+                    <span className="text-white">Carbon </span>
+                    <span className="text-red-500 font-black">8</span>
                   </h1>
-                  <span className="absolute -top-3 -right-6 px-2 py-0.5 text-[10px] font-extrabold uppercase rounded bg-emerald-500 text-slate-950 tracking-widest shadow-lg shadow-emerald-500/40">
-                    Pro
+                  <span className="absolute -top-3 -right-6 px-2 py-0.5 text-[10px] font-extrabold uppercase rounded bg-red-600 text-white tracking-widest shadow-lg shadow-red-600/40">
+                    Workshop
                   </span>
                 </div>
 
-                <p className="text-xs sm:text-sm font-semibold tracking-widest uppercase text-emerald-400/90 flex items-center justify-center gap-2">
-                  <Zap className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Workshop & Financial Intelligence</span>
+                <p className="text-xs sm:text-sm font-semibold tracking-widest uppercase text-red-400/90 flex items-center justify-center gap-2">
+                  <Zap className="w-3.5 h-3.5 text-red-500" />
+                  <span>Performance Workshop & Financial Intelligence</span>
                 </p>
               </motion.div>
 
@@ -198,7 +199,7 @@ export default function LoginPage() {
                   initial={{ width: "0%" }}
                   animate={{ width: "100%" }}
                   transition={{ duration: 2.8, ease: "easeInOut" }}
-                  className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.8)]"
+                  className="h-full bg-gradient-to-r from-red-600 via-rose-500 to-red-400 shadow-[0_0_15px_rgba(239,68,68,0.8)]"
                 />
               </div>
 
@@ -225,18 +226,19 @@ export default function LoginPage() {
       >
         <div className="bg-slate-900/90 backdrop-blur-2xl rounded-3xl border border-slate-800/80 p-8 shadow-2xl shadow-black/80 relative overflow-hidden">
           {/* Subtle Top Glow Accent */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-1 bg-gradient-to-r from-transparent via-emerald-500 to-transparent shadow-[0_0_20px_#10b981]" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent shadow-[0_0_20px_#ef4444]" />
 
           {/* Workshop Header */}
           <div className="text-center space-y-3 mb-8">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-lg shadow-emerald-500/25 ring-4 ring-emerald-500/10 mb-1">
-              <ShieldCheck className="w-7 h-7" />
+            <div className="inline-flex items-center justify-center mb-1">
+              <Carbon8Logo size="lg" withGlow />
             </div>
 
             <div>
               <h2 className="text-2xl font-black tracking-tight text-white flex items-center justify-center gap-2">
-                <span>TrackMotors</span>
-                <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                <span className="text-white">Carbon</span>
+                <span className="text-red-500 font-black">8</span>
+                <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-red-500/20 text-red-400 border border-red-500/30">
                   Secured
                 </span>
               </h2>

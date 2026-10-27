@@ -7,9 +7,9 @@ import { Toaster } from "sonner";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "TrackMotors — Bike Workshop Management System",
+  title: "Carbon 8 — Motorcycle Workshop Management System",
   description:
-    "Daily service tracking, dynamic expenses, monthly profit/loss reports, and customer due management with installment tracking.",
+    "Carbon 8 Workshop Management Platform — Daily services, spare parts sales, expenses, and customer ledger.",
 };
 
 export default function RootLayout({

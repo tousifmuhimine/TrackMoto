@@ -16,6 +16,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Carbon8Logo, Carbon8BrandName } from "@/components/ui/carbon8-logo";
 
 const navigation = [
   {
@@ -95,19 +96,15 @@ export function Sidebar() {
     <aside className="hidden lg:flex flex-col w-72 bg-slate-900 text-slate-100 border-r border-slate-800/80 shrink-0 select-none">
       {/* Brand Header */}
       <div className="h-16 flex items-center px-6 gap-3 border-b border-slate-800/60 bg-slate-950/40">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20 ring-1 ring-white/20">
-          <Wrench className="w-5 h-5 text-white" />
-        </div>
+        <Carbon8Logo size="md" />
         <div>
           <div className="flex items-center gap-1.5">
-            <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent">
-              TrackMotors
-            </span>
-            <span className="px-1.5 py-0.5 text-[10px] font-semibold tracking-wider uppercase rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+            <Carbon8BrandName size="md" />
+            <span className="px-1.5 py-0.5 text-[9px] font-bold tracking-wider uppercase rounded bg-red-500/20 text-red-400 border border-red-500/30">
               Pro
             </span>
           </div>
-          <p className="text-xs text-slate-400 font-medium">Workshop Management</p>
+          <p className="text-[11px] text-slate-400 font-medium">Workshop Management</p>
         </div>
       </div>
 
@@ -177,7 +174,7 @@ export function Sidebar() {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold text-slate-200 truncate">
-              TrackMotors Workshop
+              <span className="text-white">Carbon </span><span className="text-red-500 font-bold">8</span> Workshop
             </p>
             <p className="text-[11px] text-emerald-400 flex items-center gap-1 font-medium">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>

@@ -54,7 +54,7 @@ export default function DashboardPage() {
         <div className="relative z-10 max-w-2xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-semibold mb-3 border border-emerald-500/30">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>TrackMoto Workshop Management System</span>
+            <span><strong className="text-white">Carbon</strong> <strong className="text-red-500 font-extrabold">8</strong> Workshop Management Platform</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
             Welcome! Today's Workshop Overview

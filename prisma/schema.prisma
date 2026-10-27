@@ -247,7 +247,7 @@ model InventoryItem {
 
 model WorkshopSettings {
   id           String   @id @default("default")
-  workshopName String   @default("TrackMoto Bike Workshop")
+  workshopName String   @default("Carbon 8 Workshop")
   address      String   @default("Mirpur, Dhaka, Bangladesh")
   phone        String   @default("+880 1700-000000")
   currency     String   @default("BDT")
