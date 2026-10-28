@@ -2,6 +2,7 @@
 
 import { Calendar, LogOut } from "lucide-react";
 import { format } from "date-fns";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export function Header() {
   const today = new Date();
@@ -30,6 +31,9 @@ export function Header() {
         <div className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-xs font-bold rounded-md text-slate-700 dark:text-slate-200 border border-slate-250 dark:border-slate-700">
           Currency: BDT
         </div>
+
+        {/* Theme Toggle (Dark & Bright Mode) */}
+        <ThemeToggle />
 
         {/* Lock / Logout button */}
         <button
