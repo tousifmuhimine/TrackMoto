@@ -36,6 +36,11 @@ export async function GET(request: Request) {
       include: {
         customer: true,
         bike: true,
+        serviceItems: {
+          include: {
+            inventoryItem: true,
+          },
+        },
         customerDues: {
           include: {
             installments: true,
@@ -173,6 +178,46 @@ export async function POST(request: Request) {
         bike: true,
       },
     });
+
+    // 3.5 Deduct Inventory quantities and record ServiceItems if stock items were used/sold
+    if (Array.isArray(body.inventoryItems) && body.inventoryItems.length > 0) {
+      for (const item of body.inventoryItems) {
+        if (item.inventoryItemId) {
+          const qty = Math.max(1, parseInt(item.quantity || 1, 10));
+          const unitPrice = Number(item.unitPrice || 0);
+
+          // 1. Decrement stock quantity
+          try {
+            await prisma.inventoryItem.update({
+              where: { id: item.inventoryItemId },
+              data: {
+                quantity: {
+                  decrement: qty,
+                },
+              },
+            });
+          } catch (invErr) {
+            console.warn("Could not decrement inventory item:", item.inventoryItemId, invErr);
+          }
+
+          // 2. Create ServiceItem link
+          try {
+            await prisma.serviceItem.create({
+              data: {
+                serviceId: service.id,
+                inventoryItemId: item.inventoryItemId,
+                description: item.description || "Stock Item",
+                quantity: qty,
+                unitPrice: unitPrice,
+                total: unitPrice * qty,
+              },
+            });
+          } catch (siErr) {
+            console.warn("Could not create service item link:", siErr);
+          }
+        }
+      }
+    }
 
     // 4. Auto-create CustomerDue if status is DUE or PARTIAL
     if (paymentStatus === "DUE" || paymentStatus === "PARTIAL") {

@@ -106,10 +106,33 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
+
+    // Restore any deducted inventory quantities before deleting
+    const serviceItems = await prisma.serviceItem.findMany({
+      where: { serviceId: id },
+    });
+
+    for (const item of serviceItems) {
+      if (item.inventoryItemId && item.quantity > 0) {
+        try {
+          await prisma.inventoryItem.update({
+            where: { id: item.inventoryItemId },
+            data: {
+              quantity: {
+                increment: item.quantity,
+              },
+            },
+          });
+        } catch (e) {
+          console.warn("Failed to restore inventory item on service deletion:", e);
+        }
+      }
+    }
+
     await prisma.service.delete({
       where: { id },
     });
-    return NextResponse.json({ success: true, message: "Service deleted" });
+    return NextResponse.json({ success: true, message: "Service deleted and inventory restored" });
   } catch (error: any) {
     return NextResponse.json(
       { error: "Failed to delete service", details: error.message },

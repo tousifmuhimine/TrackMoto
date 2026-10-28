@@ -25,6 +25,7 @@ export default function DailySheetPage() {
   const [loading, setLoading] = useState(true);
 
   // Modals & Editing
+  const [inventoryItems, setInventoryItems] = useState<any[]>([]);
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
@@ -49,6 +50,10 @@ export default function DailySheetPage() {
     amountPaid: "",
     dueDate: "",
     notes: "",
+    selectedEngineOilId: "",
+    selectedPartId: "",
+    partsQuantity: "1",
+    engineOilQuantity: "1",
   });
 
   // New dynamic expense form state
@@ -64,16 +69,19 @@ export default function DailySheetPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [resServices, resExpenses] = await Promise.all([
+      const [resServices, resExpenses, resInventory] = await Promise.all([
         fetch(`/api/services?date=${formattedDateParam}`),
         fetch(`/api/expenses?date=${formattedDateParam}`),
+        fetch("/api/inventory"),
       ]);
 
       const dataServices = await resServices.json();
       const dataExpenses = await resExpenses.json();
+      const dataInventory = await resInventory.json();
 
       setServices(Array.isArray(dataServices) ? dataServices : []);
       setExpenses(Array.isArray(dataExpenses) ? dataExpenses : []);
+      setInventoryItems(Array.isArray(dataInventory) ? dataInventory : []);
     } catch (err: any) {
       toast.error("Failed to load records: " + err.message);
     } finally {
@@ -116,6 +124,10 @@ export default function DailySheetPage() {
       amountPaid: "",
       dueDate: "",
       notes: "",
+      selectedEngineOilId: "",
+      selectedPartId: "",
+      partsQuantity: "1",
+      engineOilQuantity: "1",
     });
     setIsServiceModalOpen(true);
   };
@@ -142,6 +154,10 @@ export default function DailySheetPage() {
       amountPaid: (item.amountPaid ?? 0).toString(),
       dueDate: item.dueDate || "",
       notes: item.notes || "",
+      selectedEngineOilId: "",
+      selectedPartId: "",
+      partsQuantity: "1",
+      engineOilQuantity: "1",
     });
     setIsServiceModalOpen(true);
   };
@@ -188,6 +204,32 @@ export default function DailySheetPage() {
 
       const targetDate = serviceForm.date || format(selectedDate, "yyyy-MM-dd");
 
+      // Build inventory deduction items
+      const inventoryItemsToDeduct: any[] = [];
+      if (serviceForm.selectedEngineOilId) {
+        const oil = inventoryItems.find((i) => i.id === serviceForm.selectedEngineOilId);
+        if (oil) {
+          inventoryItemsToDeduct.push({
+            inventoryItemId: oil.id,
+            quantity: Math.max(1, parseInt(serviceForm.engineOilQuantity || "1", 10)),
+            unitPrice: Number(oil.sellPrice || 0),
+            description: oil.name,
+          });
+        }
+      }
+
+      if (serviceForm.selectedPartId) {
+        const part = inventoryItems.find((i) => i.id === serviceForm.selectedPartId);
+        if (part) {
+          inventoryItemsToDeduct.push({
+            inventoryItemId: part.id,
+            quantity: Math.max(1, parseInt(serviceForm.partsQuantity || "1", 10)),
+            unitPrice: Number(part.sellPrice || 0),
+            description: part.name,
+          });
+        }
+      }
+
       const payload = {
         date: targetDate,
         saleType: serviceForm.saleType,
@@ -206,6 +248,7 @@ export default function DailySheetPage() {
         amountPaid: paid,
         dueDate: serviceForm.dueDate || null,
         notes: serviceForm.notes,
+        inventoryItems: inventoryItemsToDeduct,
       };
 
       const url = editingServiceId ? `/api/services/${editingServiceId}` : "/api/services";
@@ -243,6 +286,10 @@ export default function DailySheetPage() {
         amountPaid: "",
         dueDate: "",
         notes: "",
+        selectedEngineOilId: "",
+        selectedPartId: "",
+        partsQuantity: "1",
+        engineOilQuantity: "1",
       });
 
       // Navigate to targetDate if entered date differs from currently viewed date
@@ -952,11 +999,57 @@ export default function DailySheetPage() {
                       placeholder="0"
                       value={serviceForm.sparePartsCost}
                       onChange={(e) =>
-                        setServiceForm({ ...serviceForm, sparePartsCost: e.target.value })
+                        setServiceForm({
+                          ...serviceForm,
+                          sparePartsCost: e.target.value,
+                          selectedPartId: "",
+                        })
                       }
                       className="w-full px-2.5 py-1.5 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
                     />
+                    {inventoryItems.length > 0 && (
+                      <select
+                        value={serviceForm.selectedPartId}
+                        onChange={(e) => {
+                          const partId = e.target.value;
+                          const part = inventoryItems.find((i) => i.id === partId);
+                          if (part) {
+                            const qty = Math.max(1, parseInt(serviceForm.partsQuantity || "1", 10));
+                            setServiceForm({
+                              ...serviceForm,
+                              selectedPartId: partId,
+                              sparePartsCost: (Number(part.sellPrice) * qty).toString(),
+                            });
+                          } else {
+                            setServiceForm({
+                              ...serviceForm,
+                              selectedPartId: "",
+                            });
+                          }
+                        }}
+                        className="w-full mt-1 text-[11px] px-1.5 py-1 rounded-md border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 truncate"
+                      >
+                        <option value="">Choose part from stock...</option>
+                        {inventoryItems
+                          .filter((i) => i.category !== "ENGINE_OIL")
+                          .map((item) => (
+                            <option
+                              key={item.id}
+                              value={item.id}
+                              disabled={item.quantity <= 0}
+                            >
+                              {item.name} (৳{item.sellPrice}/pc — {item.quantity <= 0 ? "Out of Stock" : `${item.quantity} in stock`})
+                            </option>
+                          ))}
+                      </select>
+                    )}
+                    {serviceForm.selectedPartId && (
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium block mt-0.5">
+                        📦 Auto-drops stock on save
+                      </span>
+                    )}
                   </div>
+
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
                       Engine Oil (BDT)
@@ -966,10 +1059,55 @@ export default function DailySheetPage() {
                       placeholder="0"
                       value={serviceForm.engineOilCost}
                       onChange={(e) =>
-                        setServiceForm({ ...serviceForm, engineOilCost: e.target.value })
+                        setServiceForm({
+                          ...serviceForm,
+                          engineOilCost: e.target.value,
+                          selectedEngineOilId: "",
+                        })
                       }
                       className="w-full px-2.5 py-1.5 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
                     />
+                    {inventoryItems.length > 0 && (
+                      <select
+                        value={serviceForm.selectedEngineOilId}
+                        onChange={(e) => {
+                          const oilId = e.target.value;
+                          const oil = inventoryItems.find((i) => i.id === oilId);
+                          if (oil) {
+                            const qty = Math.max(1, parseInt(serviceForm.engineOilQuantity || "1", 10));
+                            setServiceForm({
+                              ...serviceForm,
+                              selectedEngineOilId: oilId,
+                              engineOilCost: (Number(oil.sellPrice) * qty).toString(),
+                            });
+                          } else {
+                            setServiceForm({
+                              ...serviceForm,
+                              selectedEngineOilId: "",
+                            });
+                          }
+                        }}
+                        className="w-full mt-1 text-[11px] px-1.5 py-1 rounded-md border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 truncate"
+                      >
+                        <option value="">Choose oil from stock...</option>
+                        {inventoryItems
+                          .filter((i) => i.category === "ENGINE_OIL" || i.category === "MISC")
+                          .map((item) => (
+                            <option
+                              key={item.id}
+                              value={item.id}
+                              disabled={item.quantity <= 0}
+                            >
+                              {item.name} (৳{item.sellPrice}/pc — {item.quantity <= 0 ? "Out of Stock" : `${item.quantity} in stock`})
+                            </option>
+                          ))}
+                      </select>
+                    )}
+                    {serviceForm.selectedEngineOilId && (
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium block mt-0.5">
+                        📦 Auto-drops stock on save
+                      </span>
+                    )}
                   </div>
                   <div>
                     <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
