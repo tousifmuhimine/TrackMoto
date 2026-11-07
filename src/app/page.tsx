@@ -87,103 +87,151 @@ export default function DashboardPage() {
       </div>
 
       {/* KPI Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Today's Income */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        {/* 1. Cash in Hand (Physical Drawer) */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4.5 shadow-xs relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Today's Income
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Cash in Hand
             </span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-              <TrendingUp className="w-4 h-4" />
+            <div className="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+              💵
             </div>
           </div>
-          <div className="text-2xl font-extrabold text-slate-900 dark:text-white mt-2">
-            {formatCurrency(data?.today?.income || 0)}
+          <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1.5 truncate">
+            {formatCurrency(data?.today?.cashInHand ?? ((data?.today?.income || 0) - (data?.today?.expense || 0)))}
           </div>
-          <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Service + Parts + Oil + Extra
+          <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 truncate">
+            Physical Drawer Balance
           </div>
         </div>
 
-        {/* Today's Expense */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
+        {/* 2. Today's Total Cash Received */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4.5 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+              Total Cash Inflows
+            </span>
+            <div className="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+              <TrendingUp className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <div className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1.5 truncate">
+            {formatCurrency(data?.today?.totalCashReceived ?? data?.today?.income ?? 0)}
+          </div>
+          <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 truncate">
+            Cash ৳{data?.today?.physicalCashIn ?? 0} • Dig ৳{data?.today?.digitalIn ?? 0}
+          </div>
+        </div>
+
+        {/* 3. Today's Expenses */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4.5 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-rose-600 dark:text-rose-400">
               Today's Expenses
             </span>
-            <div className="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center">
-              <TrendingDown className="w-4 h-4" />
+            <div className="w-7 h-7 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+              <TrendingDown className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="text-2xl font-extrabold text-slate-900 dark:text-white mt-2">
+          <div className="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400 mt-1.5 truncate">
             {formatCurrency(data?.today?.expense || 0)}
           </div>
-          <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Total dynamic expenses
+          <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 truncate">
+            Daily cash outflows
           </div>
         </div>
 
-        {/* Today's Net Balance */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
+        {/* 4. Customer Outstanding Dues */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4.5 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Today's Net Profit
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+              Outstanding Dues
+            </span>
+            <div className="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+              <CreditCard className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <div className="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 mt-1.5 truncate">
+            {formatCurrency(data?.dues?.total || 0)}
+          </div>
+          <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 truncate">
+            {data?.dues?.count || 0} customer accounts
+          </div>
+        </div>
+
+        {/* 5. Today's Billed Work (Revenue) */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4.5 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Work Billed
+            </span>
+            <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center">
+              <Wrench className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1.5 truncate">
+            {formatCurrency(data?.today?.revenue ?? data?.today?.income ?? 0)}
+          </div>
+          <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 truncate">
+            {data?.today?.serviceCount || 0} services / sales
+          </div>
+        </div>
+
+        {/* 6. Today's Net Profit */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4.5 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Net Profit
             </span>
             <span
-              className={`px-2 py-0.5 text-[10px] font-bold rounded-md ${
-                (data?.today?.net || 0) > 0
+              className={`px-1.5 py-0.5 text-[9px] font-bold rounded-md ${
+                (data?.today?.profit ?? data?.today?.net ?? 0) >= 0
                   ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
-                  : (data?.today?.net || 0) < 0
-                  ? "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300"
-                  : (data?.today?.income || 0) > 0 || (data?.today?.expense || 0) > 0
-                  ? "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
-                  : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                  : "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300"
               }`}
             >
-              {(data?.today?.net || 0) > 0
-                ? "PROFIT"
-                : (data?.today?.net || 0) < 0
-                ? "LOSS"
-                : (data?.today?.income || 0) > 0 || (data?.today?.expense || 0) > 0
-                ? "BREAK-EVEN"
-                : "NO ACTIVITY"}
+              {(data?.today?.profit ?? data?.today?.net ?? 0) >= 0 ? "PROFIT" : "LOSS"}
             </span>
           </div>
           <div
-            className={`text-2xl font-extrabold mt-2 ${
-              (data?.today?.net || 0) > 0
+            className={`text-xl sm:text-2xl font-black mt-1.5 truncate ${
+              (data?.today?.profit ?? data?.today?.net ?? 0) >= 0
                 ? "text-emerald-600 dark:text-emerald-400"
-                : (data?.today?.net || 0) < 0
-                ? "text-rose-600 dark:text-rose-400"
-                : "text-slate-600 dark:text-slate-400"
+                : "text-rose-600 dark:text-rose-400"
             }`}
           >
-            {formatCurrency(data?.today?.net || 0)}
+            {formatCurrency(data?.today?.profit ?? data?.today?.net ?? 0)}
           </div>
-          <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Income minus Expenses
-          </div>
-        </div>
-
-        {/* Customer Pending Dues */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Customer Dues
-            </span>
-            <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-              <CreditCard className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl font-extrabold text-amber-600 dark:text-amber-400 mt-2">
-            {formatCurrency(data?.dues?.total || 0)}
-          </div>
-          <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Total {data?.dues?.count || 0} active accounts
+          <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 truncate">
+            Billed Work - Expenses
           </div>
         </div>
       </div>
+
+      {/* Recovered Old Dues Notification Banner (if any collected today) */}
+      {data?.todayOldDueCollections && data.todayOldDueCollections.length > 0 && (
+        <div className="bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/50 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            <div>
+              <span className="font-bold text-emerald-900 dark:text-emerald-200">
+                Today's Recovered Dues: {formatCurrency(data.todayOldDueCollections.reduce((a: number, b: any) => a + b.amount, 0))}
+              </span>
+              <span className="text-slate-600 dark:text-slate-400 ml-2">
+                (Collected across {data.todayOldDueCollections.length} customer debts. Added to Cash in Hand, separated from new service revenue).
+              </span>
+            </div>
+          </div>
+          <Link
+            href="/daily"
+            className="text-emerald-600 dark:text-emerald-400 font-bold hover:underline flex items-center gap-1 shrink-0"
+          >
+            <span>View in Daily Sheet</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      )}
 
       {/* 7-Day Revenue Trend Chart */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs">

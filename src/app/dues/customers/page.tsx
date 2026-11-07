@@ -40,6 +40,24 @@ export default function CustomerDuesPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editForm, setEditForm] = useState({
     totalAmount: "",
+    adjustment: "",
+    adjustmentReason: "",
+    dueDate: "",
+    notes: "",
+  });
+
+  // Add Due Modal State
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [addForm, setAddForm] = useState({
+    customerName: "",
+    customerPhone: "",
+    bikeModel: "",
+    totalAmount: "",
+    paidAmount: "",
+    extraCharges: "",
+    paymentMethod: "CASH",
+    transactionId: "",
+    date: new Date().toISOString().split("T")[0],
     dueDate: "",
     notes: "",
   });
@@ -48,6 +66,8 @@ export default function CustomerDuesPage() {
     setEditingDue(due);
     setEditForm({
       totalAmount: due.totalAmount?.toString() || "0",
+      adjustment: "",
+      adjustmentReason: "",
       dueDate: due.dueDate ? new Date(due.dueDate).toISOString().split("T")[0] : "",
       notes: due.notes || "",
     });
@@ -64,6 +84,8 @@ export default function CustomerDuesPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           totalAmount: Number(editForm.totalAmount),
+          adjustment: editForm.adjustment ? Number(editForm.adjustment) : 0,
+          adjustmentReason: editForm.adjustmentReason || null,
           dueDate: editForm.dueDate || null,
           notes: editForm.notes || null,
         }),
@@ -77,6 +99,58 @@ export default function CustomerDuesPage() {
       toast.success("Customer due updated successfully!");
       setIsEditModalOpen(false);
       setEditingDue(null);
+      fetchDues();
+    } catch (err: any) {
+      toast.error(err.message);
+    }
+  };
+
+  const handleCreateDue = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!addForm.customerName || !addForm.totalAmount) {
+      toast.warning("Customer Name and Total Bill Amount are required");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/customer-dues", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customerName: addForm.customerName,
+          customerPhone: addForm.customerPhone || null,
+          bikeModel: addForm.bikeModel || "Standard Bike",
+          totalAmount: Number(addForm.totalAmount),
+          paidAmount: Number(addForm.paidAmount || 0),
+          extraCharges: Number(addForm.extraCharges || 0),
+          paymentMethod: addForm.paymentMethod,
+          transactionId: addForm.transactionId || null,
+          date: addForm.date,
+          dueDate: addForm.dueDate || null,
+          notes: addForm.notes || null,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to create due record");
+      }
+
+      toast.success("Customer due record created!");
+      setIsAddModalOpen(false);
+      setAddForm({
+        customerName: "",
+        customerPhone: "",
+        bikeModel: "",
+        totalAmount: "",
+        paidAmount: "",
+        extraCharges: "",
+        paymentMethod: "CASH",
+        transactionId: "",
+        date: new Date().toISOString().split("T")[0],
+        dueDate: "",
+        notes: "",
+      });
       fetchDues();
     } catch (err: any) {
       toast.error(err.message);
@@ -195,16 +269,25 @@ export default function CustomerDuesPage() {
           </p>
         </div>
 
-        {/* Search */}
-        <div className="relative min-w-[260px]">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Search customer, phone, or bike..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
-          />
+        {/* Search & Actions */}
+        <div className="flex items-center gap-3">
+          <div className="relative min-w-[240px]">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search customer, phone, or bike..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
+            />
+          </div>
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-xs transition-colors shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>New Due Entry</span>
+          </button>
         </div>
       </div>
 
@@ -351,35 +434,63 @@ export default function CustomerDuesPage() {
                     </div>
                   </div>
 
-                  {/* Middle: Amount Overview */}
-                  <div className="flex items-center gap-6 border-y lg:border-y-0 lg:border-x border-slate-100 dark:border-slate-800 py-3 lg:py-0 lg:px-6">
-                    <div>
-                      <span className="text-[11px] font-semibold uppercase text-slate-400 block">
-                        Total Bill
-                      </span>
-                      <span className="text-base font-bold text-slate-700 dark:text-slate-300">
-                        {formatCurrency(due.totalAmount)}
-                      </span>
-                    </div>
+                  {/* Middle: Amount Overview (Total, Advance, Extra, and Je Tk Pai / Remaining) */}
+                  {(() => {
+                    const extraCharge = due.service?.extraCharges || 0;
+                    const advancePaid =
+                      due.installments?.find(
+                        (i: any) =>
+                          i.note?.toLowerCase().includes("upfront") ||
+                          i.note?.toLowerCase().includes("advance") ||
+                          i.note?.toLowerCase().includes("initial")
+                      )?.amount ?? (due.service ? due.service.amountPaid : (due.installments?.[due.installments.length - 1]?.amount || 0));
+                    const subsequentPaid = Math.max(0, due.paidAmount - advancePaid);
 
-                    <div>
-                      <span className="text-[11px] font-semibold uppercase text-emerald-600 dark:text-emerald-400 block">
-                        Total Paid
-                      </span>
-                      <span className="text-base font-bold text-emerald-600 dark:text-emerald-400">
-                        {formatCurrency(due.paidAmount)}
-                      </span>
-                    </div>
+                    return (
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 border-y lg:border-y-0 lg:border-x border-slate-100 dark:border-slate-800 py-3 lg:py-0 lg:px-6">
+                        <div>
+                          <span className="text-[11px] font-semibold uppercase text-slate-400 block">
+                            Total Bill
+                          </span>
+                          <span className="text-base font-bold text-slate-700 dark:text-slate-300">
+                            {formatCurrency(due.totalAmount)}
+                          </span>
+                        </div>
 
-                    <div>
-                      <span className="text-[11px] font-semibold uppercase text-rose-600 dark:text-rose-400 block">
-                        Remaining Due
-                      </span>
-                      <span className="text-xl font-extrabold text-rose-600 dark:text-rose-400">
-                        {formatCurrency(due.remainingAmount)}
-                      </span>
-                    </div>
-                  </div>
+                        <div>
+                          <span className="text-[11px] font-semibold uppercase text-emerald-600 dark:text-emerald-400 block">
+                            Advance Paid
+                          </span>
+                          <span className="text-base font-bold text-emerald-600 dark:text-emerald-400">
+                            {formatCurrency(advancePaid)}
+                          </span>
+                          {subsequentPaid > 0 && (
+                            <span className="text-[10px] text-emerald-500 block">
+                              +{formatCurrency(subsequentPaid)} inst.
+                            </span>
+                          )}
+                        </div>
+
+                        <div>
+                          <span className="text-[11px] font-semibold uppercase text-amber-600 dark:text-amber-400 block">
+                            Extra Charges
+                          </span>
+                          <span className="text-base font-bold text-amber-600 dark:text-amber-400">
+                            {formatCurrency(extraCharge)}
+                          </span>
+                        </div>
+
+                        <div>
+                          <span className="text-[11px] font-semibold uppercase text-rose-600 dark:text-rose-400 block">
+                            Due (যে টাকা পাই)
+                          </span>
+                          <span className="text-xl font-extrabold text-rose-600 dark:text-rose-400">
+                            {formatCurrency(due.remainingAmount)}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* Right: Action Buttons */}
                   <div className="flex items-center gap-2">
@@ -436,13 +547,28 @@ export default function CustomerDuesPage() {
                       {due.installments.map((inst: any) => (
                         <div
                           key={inst.id}
-                          className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 text-xs"
+                          className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 text-xs"
                         >
                           <div>
-                            <span className="font-semibold text-slate-800 dark:text-slate-200 block">
-                              {formatCurrency(inst.amount)} ({inst.method})
-                            </span>
-                            <span className="text-[11px] text-slate-400 block">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-bold text-slate-800 dark:text-slate-200">
+                                {formatCurrency(inst.amount)}
+                              </span>
+                              <span
+                                className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                                  inst.method === "CASH"
+                                    ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+                                    : inst.method === "BKASH"
+                                    ? "bg-pink-100 text-pink-800 dark:bg-pink-950/60 dark:text-pink-300"
+                                    : inst.method === "NAGAD"
+                                    ? "bg-orange-100 text-orange-800 dark:bg-orange-950/60 dark:text-orange-300"
+                                    : "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300"
+                                }`}
+                              >
+                                {inst.method}
+                              </span>
+                            </div>
+                            <span className="text-[11px] text-slate-400 block mt-0.5">
                               📅 {formatDate(inst.date)}
                             </span>
                             {inst.transactionId && (
@@ -452,7 +578,7 @@ export default function CustomerDuesPage() {
                             )}
                           </div>
                           {inst.note && (
-                            <span className="text-[10px] text-slate-500 max-w-[120px] truncate">
+                            <span className="text-[10px] text-slate-500 max-w-[120px] truncate text-right">
                               {inst.note}
                             </span>
                           )}
@@ -634,8 +760,33 @@ export default function CustomerDuesPage() {
                   className="w-full px-3 py-2 text-base font-bold rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-hidden focus:ring-2 focus:ring-emerald-500"
                 />
                 <p className="text-[11px] text-slate-500 mt-1">
-                  Paid Amount: {formatCurrency(editingDue.paidAmount)}
+                  Paid Amount: {formatCurrency(editingDue.paidAmount)} • Remaining:{" "}
+                  {formatCurrency(Math.max(0, Number(editForm.totalAmount || 0) + Number(editForm.adjustment || 0) - editingDue.paidAmount))}
                 </p>
+              </div>
+
+              <div className="p-3 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-xl space-y-2">
+                <label className="block text-xs font-bold text-amber-800 dark:text-amber-300">
+                  ⚡ Add Extra Charge / Adjustment (Optional)
+                </label>
+                <input
+                  type="number"
+                  placeholder="e.g. 500 for extra parts, or -200 discount"
+                  value={editForm.adjustment}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, adjustment: e.target.value })
+                  }
+                  className="w-full px-3 py-1.5 text-sm rounded-lg border border-amber-300 dark:border-amber-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
+                />
+                <input
+                  type="text"
+                  placeholder="Reason for adjustment (e.g. Additional carburetor work)"
+                  value={editForm.adjustmentReason}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, adjustmentReason: e.target.value })
+                  }
+                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-amber-300 dark:border-amber-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                />
               </div>
 
               <div>
@@ -680,6 +831,222 @@ export default function CustomerDuesPage() {
                   className="px-5 py-2 text-sm font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
                 >
                   Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* New Customer Due Entry Modal */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <CreditCard className="w-5 h-5 text-emerald-600" />
+                  <span>Create New Customer Due Record</span>
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Record an outstanding debt ledger entry with advance and extra charges.
+                </p>
+              </div>
+              <button
+                onClick={() => setIsAddModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateDue} className="mt-4 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Customer Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Rahim Ahmed"
+                    value={addForm.customerName}
+                    onChange={(e) =>
+                      setAddForm({ ...addForm, customerName: e.target.value })
+                    }
+                    className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Phone Number (for auto-tracking)
+                  </label>
+                  <input
+                    type="tel"
+                    placeholder="e.g. 017xxxxxxxx"
+                    value={addForm.customerPhone}
+                    onChange={(e) =>
+                      setAddForm({ ...addForm, customerPhone: e.target.value })
+                    }
+                    className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Bike Model / Plate
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Yamaha FZS V3 (Dhaka Metro-Ha-11-2233)"
+                  value={addForm.bikeModel}
+                  onChange={(e) =>
+                    setAddForm({ ...addForm, bikeModel: e.target.value })
+                  }
+                  className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Total Bill (BDT) *
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    placeholder="0"
+                    value={addForm.totalAmount}
+                    onChange={(e) =>
+                      setAddForm({ ...addForm, totalAmount: e.target.value })
+                    }
+                    className="w-full px-3 py-2 text-sm font-bold rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Advance Paid (BDT)
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="0"
+                    value={addForm.paidAmount}
+                    onChange={(e) =>
+                      setAddForm({ ...addForm, paidAmount: e.target.value })
+                    }
+                    className="w-full px-3 py-2 text-sm font-bold rounded-xl border border-emerald-300 dark:border-emerald-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Extra Charges (BDT)
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="0"
+                    value={addForm.extraCharges}
+                    onChange={(e) =>
+                      setAddForm({ ...addForm, extraCharges: e.target.value })
+                    }
+                    className="w-full px-3 py-2 text-sm rounded-xl border border-amber-300 dark:border-amber-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              {Number(addForm.paidAmount || 0) > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Payment Method
+                    </label>
+                    <select
+                      value={addForm.paymentMethod}
+                      onChange={(e) =>
+                        setAddForm({ ...addForm, paymentMethod: e.target.value })
+                      }
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                    >
+                      <option value="CASH">Cash</option>
+                      <option value="BKASH">bKash</option>
+                      <option value="NAGAD">Nagad</option>
+                      <option value="BANK">Bank Transfer</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      Transaction ID (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 9K82JD01P"
+                      value={addForm.transactionId}
+                      onChange={(e) =>
+                        setAddForm({ ...addForm, transactionId: e.target.value })
+                      }
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Entry Date
+                  </label>
+                  <input
+                    type="date"
+                    value={addForm.date}
+                    onChange={(e) =>
+                      setAddForm({ ...addForm, date: e.target.value })
+                    }
+                    className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Promise / Due Date (Optional)
+                  </label>
+                  <input
+                    type="date"
+                    value={addForm.dueDate}
+                    onChange={(e) =>
+                      setAddForm({ ...addForm, dueDate: e.target.value })
+                    }
+                    className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Notes / Description
+                </label>
+                <textarea
+                  rows={2}
+                  value={addForm.notes}
+                  onChange={(e) =>
+                    setAddForm({ ...addForm, notes: e.target.value })
+                  }
+                  placeholder="Details of services, parts, or terms agreed..."
+                  className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                />
+              </div>
+
+              <div className="pt-2 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsAddModalOpen(false)}
+                  className="px-4 py-2 text-sm font-semibold rounded-xl border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 text-sm font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                >
+                  Save Due Record
                 </button>
               </div>
             </form>

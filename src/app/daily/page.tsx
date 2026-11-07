@@ -13,6 +13,10 @@ import {
   Receipt,
   ChevronLeft,
   ChevronRight,
+  Coins,
+  CreditCard,
+  Wallet,
+  Edit3,
 } from "lucide-react";
 import { format, addDays, subDays } from "date-fns";
 import { formatCurrency } from "@/lib/utils";
@@ -22,6 +26,11 @@ export default function DailySheetPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [services, setServices] = useState<any[]>([]);
   const [expenses, setExpenses] = useState<any[]>([]);
+  const [duePayments, setDuePayments] = useState<any[]>([]);
+  const [allDues, setAllDues] = useState<any[]>([]);
+  const [openingCash, setOpeningCash] = useState<number>(0);
+  const [isOpeningCashModalOpen, setIsOpeningCashModalOpen] = useState(false);
+  const [openingCashInput, setOpeningCashInput] = useState<string>("0");
   const [loading, setLoading] = useState(true);
 
   // Modals & Editing
@@ -66,22 +75,45 @@ export default function DailySheetPage() {
 
   const formattedDateParam = format(selectedDate, "yyyy-MM-dd");
 
+  // Load opening cash from localStorage by date
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(`carbon8_opening_cash_${formattedDateParam}`);
+      if (stored !== null) {
+        setOpeningCash(Number(stored));
+        setOpeningCashInput(stored);
+      } else {
+        setOpeningCash(0);
+        setOpeningCashInput("0");
+      }
+    } catch {
+      setOpeningCash(0);
+      setOpeningCashInput("0");
+    }
+  }, [formattedDateParam]);
+
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [resServices, resExpenses, resInventory] = await Promise.all([
+      const [resServices, resExpenses, resInventory, resDuePayments, resAllDues] = await Promise.all([
         fetch(`/api/services?date=${formattedDateParam}`),
         fetch(`/api/expenses?date=${formattedDateParam}`),
         fetch("/api/inventory"),
+        fetch(`/api/customer-dues/payments?date=${formattedDateParam}`),
+        fetch("/api/customer-dues"),
       ]);
 
       const dataServices = await resServices.json();
       const dataExpenses = await resExpenses.json();
       const dataInventory = await resInventory.json();
+      const dataDuePayments = await resDuePayments.json();
+      const dataAllDues = await resAllDues.json();
 
       setServices(Array.isArray(dataServices) ? dataServices : []);
       setExpenses(Array.isArray(dataExpenses) ? dataExpenses : []);
       setInventoryItems(Array.isArray(dataInventory) ? dataInventory : []);
+      setDuePayments(Array.isArray(dataDuePayments) ? dataDuePayments : []);
+      setAllDues(Array.isArray(dataAllDues) ? dataAllDues : []);
     } catch (err: any) {
       toast.error("Failed to load records: " + err.message);
     } finally {
@@ -93,15 +125,65 @@ export default function DailySheetPage() {
     fetchData();
   }, [formattedDateParam]);
 
-  // Calculations
+  // 1. Separate upfront payments on today's services from old due collections
+  const todayServiceIds = new Set(services.map((s) => s.id));
+  const oldDuesCollectedToday = duePayments.filter((inst) => {
+    const isUpfrontSameDay =
+      inst.note?.includes("Upfront payment") &&
+      inst.customerDue?.serviceId &&
+      todayServiceIds.has(inst.customerDue.serviceId);
+    return !isUpfrontSameDay;
+  });
+
+  // 2. Inflows by Payment Method
+  const serviceCashInflow = services
+    .filter((s) => s.paymentMethod === "CASH")
+    .reduce((acc, s) => acc + (s.amountPaid || 0), 0);
+  const serviceBkashInflow = services
+    .filter((s) => s.paymentMethod === "BKASH")
+    .reduce((acc, s) => acc + (s.amountPaid || 0), 0);
+  const serviceNagadInflow = services
+    .filter((s) => s.paymentMethod === "NAGAD")
+    .reduce((acc, s) => acc + (s.amountPaid || 0), 0);
+  const serviceBankInflow = services
+    .filter((s) => s.paymentMethod === "BANK")
+    .reduce((acc, s) => acc + (s.amountPaid || 0), 0);
+
+  const dueCashInflow = oldDuesCollectedToday
+    .filter((i) => i.method === "CASH")
+    .reduce((acc, i) => acc + (i.amount || 0), 0);
+  const dueBkashInflow = oldDuesCollectedToday
+    .filter((i) => i.method === "BKASH")
+    .reduce((acc, i) => acc + (i.amount || 0), 0);
+  const dueNagadInflow = oldDuesCollectedToday
+    .filter((i) => i.method === "NAGAD")
+    .reduce((acc, i) => acc + (i.amount || 0), 0);
+  const dueBankInflow = oldDuesCollectedToday
+    .filter((i) => i.method === "BANK")
+    .reduce((acc, i) => acc + (i.amount || 0), 0);
+
+  // 3. Totals
+  const totalPhysicalCashInflow = serviceCashInflow + dueCashInflow;
+  const totalBkashInflow = serviceBkashInflow + dueBkashInflow;
+  const totalNagadInflow = serviceNagadInflow + dueNagadInflow;
+  const totalBankInflow = serviceBankInflow + dueBankInflow;
+  const totalDigitalInflow = totalBkashInflow + totalNagadInflow + totalBankInflow;
+  const totalCashReceivedAll = totalPhysicalCashInflow + totalDigitalInflow;
+
+  // 4. Outflows
+  const totalExpense = expenses.reduce((acc, e) => acc + (e.amount || 0), 0);
+
+  // 5. Drawer Closing Balance (Physical Cash in Hand)
+  // Closing Cash = Opening Cash + Cash Inflows (Physical Cash) - Cash Outflows
+  const closingCashDrawer = openingCash + totalPhysicalCashInflow - totalExpense;
+
+  // 6. Work Billed (Revenue Today) - Old due collections NOT included in revenue
   const totalServiceCharge = services.reduce((acc, s) => acc + (s.serviceCharge || 0), 0);
   const totalSpareParts = services.reduce((acc, s) => acc + (s.sparePartsCost || 0), 0);
   const totalEngineOil = services.reduce((acc, s) => acc + (s.engineOilCost || 0), 0);
   const totalExtra = services.reduce((acc, s) => acc + (s.extraCharges || 0), 0);
-  const totalIncome = services.reduce((acc, s) => acc + (s.totalIncome || 0), 0);
-
-  const totalExpense = expenses.reduce((acc, e) => acc + (e.amount || 0), 0);
-  const netTotal = totalIncome - totalExpense;
+  const totalBilledRevenue = services.reduce((acc, s) => acc + (s.totalIncome || 0), 0);
+  const netOperatingProfit = totalBilledRevenue - totalExpense;
 
   // Open New Service Modal
   const handleOpenNewService = () => {
@@ -434,100 +516,111 @@ export default function DailySheetPage() {
         </div>
       </div>
 
-      {/* Hero Summary Cards (Income - Expense = Net Total) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {/* Total Income Card */}
-        <div className="bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-500/30 rounded-2xl p-5 shadow-sm">
+      {/* Hero Summary Cards (Closing Drawer, Inflows, Expenses, Profit) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: Closing Cash in Hand (Physical Drawer) */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
-              Total Daily Income
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Cash Drawer (In Hand)
             </span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-              <TrendingUp className="w-4 h-4" />
-            </div>
+            <button
+              onClick={() => {
+                setOpeningCashInput(openingCash.toString());
+                setIsOpeningCashModalOpen(true);
+              }}
+              className="text-[11px] font-bold px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors flex items-center gap-1 cursor-pointer"
+              title="Set Opening Cash for this date"
+            >
+              <Edit3 className="w-3 h-3 text-emerald-600" />
+              <span>Opening: ৳{openingCash}</span>
+            </button>
           </div>
-          <div className="mt-3">
-            <span className="text-3xl font-extrabold text-slate-900 dark:text-white">
-              {formatCurrency(totalIncome)}
+          <div className="mt-2.5">
+            <span className="text-3xl font-black text-slate-900 dark:text-white">
+              {formatCurrency(closingCashDrawer)}
             </span>
           </div>
-          <div className="mt-3 pt-3 border-t border-emerald-500/20 text-xs text-slate-500 dark:text-slate-400 flex flex-wrap gap-2">
-            <span>Service: {formatCurrency(totalServiceCharge)}</span> •
-            <span>Parts: {formatCurrency(totalSpareParts)}</span> •
-            <span>Oil: {formatCurrency(totalEngineOil)}</span> •
-            <span>Extra: {formatCurrency(totalExtra)}</span>
+          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400">
+            <span>Opening (৳{openingCash}) + In (৳{totalPhysicalCashInflow}) - Exp (৳{totalExpense})</span>
           </div>
         </div>
 
-        {/* Total Expenses Card */}
-        <div className="bg-gradient-to-br from-rose-500/10 via-rose-500/5 to-transparent border border-rose-500/30 rounded-2xl p-5 shadow-sm">
+        {/* Card 2: Total Cash Inflows (Physical Cash + Digital) */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-rose-700 dark:text-rose-400">
-              Total Daily Expenses
+            <span className="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+              Total Cash Inflows
             </span>
-            <div className="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+              <TrendingUp className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2.5">
+            <span className="text-3xl font-black text-emerald-600 dark:text-emerald-400">
+              {formatCurrency(totalCashReceivedAll)}
+            </span>
+          </div>
+          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 flex flex-wrap gap-1.5">
+            <span className="font-semibold text-slate-700 dark:text-slate-300">💵 Cash: ৳{totalPhysicalCashInflow}</span>
+            <span>•</span>
+            <span>📱 bKash: ৳{totalBkashInflow}</span>
+            <span>•</span>
+            <span>🔴 Nagad: ৳{totalNagadInflow}</span>
+            <span>•</span>
+            <span>🏦 Bank: ৳{totalBankInflow}</span>
+          </div>
+        </div>
+
+        {/* Card 3: Total Daily Expenses */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-rose-600 dark:text-rose-400">
+              Total Expenses
+            </span>
+            <div className="w-8 h-8 rounded-lg bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center">
               <TrendingDown className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-3">
-            <span className="text-3xl font-extrabold text-slate-900 dark:text-white">
+          <div className="mt-2.5">
+            <span className="text-3xl font-black text-rose-600 dark:text-rose-400">
               {formatCurrency(totalExpense)}
             </span>
           </div>
-          <div className="mt-3 pt-3 border-t border-rose-500/20 text-xs text-slate-500 dark:text-slate-400">
+          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400">
             {expenses.length} dynamic expense entries recorded today
           </div>
         </div>
 
-        {/* Net Daily Balance Card */}
-        <div
-          className={`border rounded-2xl p-5 shadow-sm ${
-            netTotal > 0
-              ? "bg-gradient-to-br from-emerald-500/15 via-emerald-500/5 to-transparent border-emerald-500/30"
-              : netTotal < 0
-              ? "bg-gradient-to-br from-rose-500/15 via-rose-500/5 to-transparent border-rose-500/30"
-              : "bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800"
-          }`}
-        >
+        {/* Card 4: Work Billed & Net Operating Profit */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-              Today's Net Profit / Balance
+              Work Billed & Profit
             </span>
             <span
               className={`px-2 py-0.5 text-xs font-bold rounded-md ${
-                netTotal > 0
+                netOperatingProfit >= 0
                   ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
-                  : netTotal < 0
-                  ? "bg-rose-500/20 text-rose-700 dark:text-rose-300"
-                  : totalIncome > 0 || totalExpense > 0
-                  ? "bg-amber-500/20 text-amber-700 dark:text-amber-300"
-                  : "bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                  : "bg-rose-500/20 text-rose-700 dark:text-rose-300"
               }`}
             >
-              {netTotal > 0
-                ? "PROFIT"
-                : netTotal < 0
-                ? "LOSS"
-                : totalIncome > 0 || totalExpense > 0
-                ? "BREAK-EVEN"
-                : "NO ACTIVITY"}
+              {netOperatingProfit >= 0 ? "PROFIT" : "LOSS"}
             </span>
           </div>
-          <div className="mt-3">
+          <div className="mt-2.5">
             <span
-              className={`text-3xl font-extrabold ${
-                netTotal > 0
+              className={`text-3xl font-black ${
+                netOperatingProfit >= 0
                   ? "text-emerald-600 dark:text-emerald-400"
-                  : netTotal < 0
-                  ? "text-rose-600 dark:text-rose-400"
-                  : "text-slate-600 dark:text-slate-400"
+                  : "text-rose-600 dark:text-rose-400"
               }`}
             >
-              {formatCurrency(netTotal)}
+              {formatCurrency(netOperatingProfit)}
             </span>
           </div>
-          <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400">
-            Income {formatCurrency(totalIncome)} - Expenses {formatCurrency(totalExpense)}
+          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 truncate">
+            Billed ৳{totalBilledRevenue} - Expenses ৳{totalExpense}
           </div>
         </div>
       </div>
@@ -700,7 +793,7 @@ export default function DailySheetPage() {
                     {formatCurrency(totalExtra)}
                   </td>
                   <td className="py-3 px-4 text-right text-emerald-600 dark:text-emerald-400 text-base">
-                    {formatCurrency(totalIncome)}
+                    {formatCurrency(totalBilledRevenue)}
                   </td>
                   <td colSpan={2}></td>
                 </tr>
@@ -710,7 +803,110 @@ export default function DailySheetPage() {
         </div>
       </div>
 
-      {/* SECTION 2: Dynamic Expenses List */}
+      {/* SECTION 2: Old Dues Collected Today (Debt Recovery) */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-emerald-50/40 dark:bg-emerald-950/20">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <Coins className="w-5 h-5 text-emerald-600" />
+              <span>Old Dues Collected Today (Debt Recovery)</span>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-xs font-semibold">
+                {oldDuesCollectedToday.length}
+              </span>
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Payments received from past customer debts. Added to today's Cash in Hand without double-counting as new service revenue.
+            </p>
+          </div>
+
+          <div className="text-left sm:text-right">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 block font-semibold uppercase">
+              Total Due Collected
+            </span>
+            <span className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400">
+              +{formatCurrency(oldDuesCollectedToday.reduce((a: number, b: any) => a + (b.amount || 0), 0))}
+            </span>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100/70 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 text-xs uppercase font-semibold">
+                <th className="py-3 px-4">Customer Name & Contact</th>
+                <th className="py-3 px-4">Bike / Vehicle</th>
+                <th className="py-3 px-4 text-center">Payment Method</th>
+                <th className="py-3 px-4 text-right font-bold text-emerald-600 dark:text-emerald-400">
+                  Cash Collected
+                </th>
+                <th className="py-3 px-4 text-right">Remaining Due</th>
+                <th className="py-3 px-4">Payment Note</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {oldDuesCollectedToday.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-7 text-center text-slate-400 text-xs">
+                    No old customer dues collected on this date.
+                  </td>
+                </tr>
+              ) : (
+                oldDuesCollectedToday.map((inst: any) => (
+                  <tr
+                    key={inst.id}
+                    className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
+                  >
+                    <td className="py-3 px-4">
+                      <span className="font-semibold text-slate-800 dark:text-slate-100 block">
+                        {inst.customerDue?.customerName ||
+                          inst.customerDue?.customer?.name ||
+                          "Customer"}
+                      </span>
+                      {inst.customerDue?.customer?.phone && (
+                        <span className="text-xs text-slate-400">
+                          📞 {inst.customerDue.customer.phone}
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-xs text-slate-600 dark:text-slate-400">
+                      🏍️ {inst.customerDue?.bikeName ||
+                        inst.customerDue?.bike?.model ||
+                        "Motorcycle"}
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <span
+                        className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                          inst.method === "CASH"
+                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+                            : "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+                        }`}
+                      >
+                        {inst.method}
+                      </span>
+                      {inst.transactionId && (
+                        <span className="text-[10px] text-slate-400 font-mono block mt-0.5">
+                          Trx: {inst.transactionId}
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-right font-extrabold text-emerald-600 dark:text-emerald-400 text-base">
+                      +{formatCurrency(inst.amount)}
+                    </td>
+                    <td className="py-3 px-4 text-right font-semibold text-rose-600 dark:text-rose-400">
+                      {formatCurrency(inst.customerDue?.remainingAmount ?? 0)}
+                    </td>
+                    <td className="py-3 px-4 text-xs text-slate-500 dark:text-slate-400">
+                      {inst.note || "Due installment payment"}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* SECTION 3: Dynamic Expenses List */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
         <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50 dark:bg-slate-950/20">
           <div>
@@ -912,7 +1108,7 @@ export default function DailySheetPage() {
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g., +1 234 567 890"
+                    placeholder="e.g., +880 1711 223344"
                     value={serviceForm.customerPhone}
                     onChange={(e) =>
                       setServiceForm({ ...serviceForm, customerPhone: e.target.value })
@@ -921,6 +1117,31 @@ export default function DailySheetPage() {
                   />
                 </div>
               </div>
+
+              {/* Recognized Customer Active Due Notice */}
+              {(() => {
+                const phoneClean = serviceForm.customerPhone?.replace(/\s+/g, "");
+                if (!phoneClean || phoneClean.length < 5) return null;
+                const activeDue = allDues.find(
+                  (d) =>
+                    d.status !== "CLEARED" &&
+                    d.customer?.phone?.replace(/\s+/g, "") === phoneClean
+                );
+                if (!activeDue) return null;
+                return (
+                  <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
+                      <span>⚠️ Recognized Customer: Previous unpaid due</span>
+                      <strong className="font-extrabold text-rose-600 dark:text-rose-400">
+                        {formatCurrency(activeDue.remainingAmount)}
+                      </strong>
+                    </div>
+                    <span className="text-[10px] font-bold bg-amber-200 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200 px-2 py-0.5 rounded-md">
+                      Will accumulate on save
+                    </span>
+                  </div>
+                );
+              })()}
 
               {/* Bike Info + Running KM */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -1356,6 +1577,65 @@ export default function DailySheetPage() {
                   className="px-5 py-2 text-sm font-semibold rounded-xl bg-rose-600 hover:bg-rose-700 text-white shadow-sm"
                 >
                   {editingExpenseId ? "Save Changes" : "Save Expense"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* MODAL 3: Set Opening Cash */}
+      {isOpeningCashModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-sm p-6 shadow-2xl">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 pb-3 border-b border-slate-200 dark:border-slate-800">
+              <Wallet className="w-5 h-5 text-emerald-600" />
+              <span>Opening Cash Drawer Balance</span>
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+              Set the physical cash in the drawer at the start of {format(selectedDate, "dd MMMM yyyy")}.
+            </p>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const val = Number(openingCashInput) || 0;
+                setOpeningCash(val);
+                try {
+                  localStorage.setItem(`carbon8_opening_cash_${formattedDateParam}`, val.toString());
+                  toast.success(`Opening Cash set to ${formatCurrency(val)}`);
+                } catch {}
+                setIsOpeningCashModalOpen(false);
+              }}
+              className="mt-4 space-y-4"
+            >
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Opening Cash Amount (BDT)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="any"
+                  autoFocus
+                  required
+                  value={openingCashInput}
+                  onChange={(e) => setOpeningCashInput(e.target.value)}
+                  className="w-full px-3 py-2 text-base font-bold rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                  placeholder="e.g., 2000"
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsOpeningCashModalOpen(false)}
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-xs cursor-pointer"
+                >
+                  Save Opening Balance
                 </button>
               </div>
             </form>

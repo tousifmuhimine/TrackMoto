@@ -219,38 +219,94 @@ export async function POST(request: Request) {
       }
     }
 
-    // 4. Auto-create CustomerDue if status is DUE or PARTIAL
+    // 4. Auto-create or Accumulate CustomerDue if status is DUE or PARTIAL
     if (paymentStatus === "DUE" || paymentStatus === "PARTIAL") {
       const paid = Number(amountPaid || 0);
       const remaining = Math.max(0, totalIncome - paid);
 
-      const customerDue = await prisma.customerDue.create({
-        data: {
-          date: serviceDate,
-          customerId: customerId || null,
-          serviceId: service.id,
-          bikeId: bikeId || null,
-          customerName: customerName || (service.customer ? service.customer.name : "Walk-in"),
-          bikeName: bikeModel || (service.bike ? service.bike.model : "Standard Bike"),
-          totalAmount: totalIncome,
-          paidAmount: paid,
-          remainingAmount: remaining,
-          dueDate: dueDate ? new Date(dueDate) : null,
-          status: remaining <= 0 ? "CLEARED" : paid > 0 ? "PARTIAL" : "UNPAID",
-          notes: notes || `Created from service #${service.id.slice(-6)}`,
-        },
-      });
+      // Search for an existing ACTIVE (not cleared) due record for this customer
+      let existingDue = null;
+      if (customerId) {
+        existingDue = await prisma.customerDue.findFirst({
+          where: {
+            customerId,
+            status: { not: "CLEARED" },
+          },
+          orderBy: { createdAt: "desc" },
+        });
+      } else if (customerPhone) {
+        existingDue = await prisma.customerDue.findFirst({
+          where: {
+            customer: { phone: customerPhone },
+            status: { not: "CLEARED" },
+          },
+          orderBy: { createdAt: "desc" },
+        });
+      }
+
+      let targetDueId: string;
+
+      if (existingDue) {
+        // ACCUMULATE: Previous due + new bill - new payment
+        const newTotalAmount = existingDue.totalAmount + totalIncome;
+        const newPaidAmount = existingDue.paidAmount + paid;
+        const newRemainingAmount = Math.max(0, newTotalAmount - newPaidAmount);
+        const newStatus =
+          newRemainingAmount <= 0
+            ? "CLEARED"
+            : newPaidAmount > 0
+            ? "PARTIAL"
+            : "UNPAID";
+
+        const appendNote = notes
+          ? `${existingDue.notes || ""}\n[Service #${service.id.slice(-6)}]: ${notes}`.trim()
+          : existingDue.notes;
+
+        const updatedDue = await prisma.customerDue.update({
+          where: { id: existingDue.id },
+          data: {
+            totalAmount: newTotalAmount,
+            paidAmount: newPaidAmount,
+            remainingAmount: newRemainingAmount,
+            status: newStatus,
+            dueDate: dueDate ? new Date(dueDate) : existingDue.dueDate,
+            notes: appendNote,
+            ...(customerId && !existingDue.customerId ? { customerId } : {}),
+            ...(bikeId && !existingDue.bikeId ? { bikeId } : {}),
+          },
+        });
+        targetDueId = updatedDue.id;
+      } else {
+        // CREATE NEW DUE CYCLE (for new customers or customers whose previous due was CLEARED)
+        const customerDue = await prisma.customerDue.create({
+          data: {
+            date: serviceDate,
+            customerId: customerId || null,
+            serviceId: service.id,
+            bikeId: bikeId || null,
+            customerName: customerName || (service.customer ? service.customer.name : "Walk-in"),
+            bikeName: bikeModel || (service.bike ? service.bike.model : "Standard Bike"),
+            totalAmount: totalIncome,
+            paidAmount: paid,
+            remainingAmount: remaining,
+            dueDate: dueDate ? new Date(dueDate) : null,
+            status: remaining <= 0 ? "CLEARED" : paid > 0 ? "PARTIAL" : "UNPAID",
+            notes: notes || `Created from service #${service.id.slice(-6)}`,
+          },
+        });
+        targetDueId = customerDue.id;
+      }
 
       // Record upfront payment installment if paid > 0
       if (paid > 0) {
         await prisma.installmentPayment.create({
           data: {
-            customerDueId: customerDue.id,
+            customerDueId: targetDueId,
             amount: paid,
             method: paymentMethod,
             transactionId: transactionId || null,
             date: serviceDate,
-            note: "Upfront payment at service",
+            note: `Upfront payment (Service #${service.id.slice(-6)})`,
           },
         });
       }

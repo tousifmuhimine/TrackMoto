@@ -47,13 +47,20 @@ export async function POST(request: Request) {
       bikeModel,
       totalAmount,
       paidAmount = 0,
+      extraCharges = 0,
+      paymentMethod = "CASH",
+      transactionId,
+      date,
       dueDate,
       notes,
     } = body;
 
-    const total = Number(totalAmount || 0);
+    const baseTotal = Number(totalAmount || 0);
+    const extra = Number(extraCharges || 0);
+    const total = baseTotal + extra;
     const paid = Number(paidAmount || 0);
     const remaining = Math.max(0, total - paid);
+    const entryDate = date ? new Date(date) : new Date();
 
     let customerId = body.customerId;
     if (!customerId && customerName && customerPhone) {
@@ -70,8 +77,14 @@ export async function POST(request: Request) {
       }
     }
 
+    const noteText = [
+      extra > 0 ? `[Extra Charges: ৳${extra}]` : "",
+      notes || "",
+    ].filter(Boolean).join(" ");
+
     const due = await prisma.customerDue.create({
       data: {
+        date: entryDate,
         customerId: customerId || null,
         customerName: customerName || "Customer",
         bikeName: bikeModel || "Bike",
@@ -80,7 +93,7 @@ export async function POST(request: Request) {
         remainingAmount: remaining,
         dueDate: dueDate ? new Date(dueDate) : null,
         status: remaining <= 0 ? "CLEARED" : paid > 0 ? "PARTIAL" : "UNPAID",
-        notes,
+        notes: noteText || null,
       },
     });
 
@@ -89,8 +102,10 @@ export async function POST(request: Request) {
         data: {
           customerDueId: due.id,
           amount: paid,
-          method: "CASH",
-          note: "Initial payment",
+          method: paymentMethod || "CASH",
+          transactionId: transactionId || null,
+          date: entryDate,
+          note: "Upfront / Advance payment",
         },
       });
     }

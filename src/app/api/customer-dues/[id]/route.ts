@@ -14,9 +14,20 @@ export async function PUT(
       return NextResponse.json({ error: "Record not found" }, { status: 404 });
     }
 
-    const totalAmount = body.totalAmount ? parseFloat(body.totalAmount) : existing.totalAmount;
+    let totalAmount = body.totalAmount !== undefined ? parseFloat(body.totalAmount) : existing.totalAmount;
+    const adjustment = body.adjustment ? parseFloat(body.adjustment) : 0;
+    if (adjustment !== 0) {
+      totalAmount += adjustment;
+    }
+
     const paidAmount = existing.paidAmount;
     const remainingAmount = Math.max(0, totalAmount - paidAmount);
+
+    let updatedNotes = body.notes !== undefined ? body.notes : existing.notes;
+    if (adjustment !== 0) {
+      const adjText = `[Adjustment ${adjustment >= 0 ? "+" : ""}${adjustment} BDT: ${body.adjustmentReason || "Extra charge / adjustment"}]`;
+      updatedNotes = updatedNotes ? `${updatedNotes}\n${adjText}` : adjText;
+    }
 
     const updated = await prisma.customerDue.update({
       where: { id },
@@ -25,7 +36,7 @@ export async function PUT(
         remainingAmount,
         status: remainingAmount <= 0 ? "CLEARED" : paidAmount > 0 ? "PARTIAL" : "UNPAID",
         dueDate: body.dueDate ? new Date(body.dueDate) : existing.dueDate,
-        notes: body.notes !== undefined ? body.notes : existing.notes,
+        notes: updatedNotes,
       },
       include: {
         customer: true,
